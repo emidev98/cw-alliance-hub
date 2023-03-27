@@ -4,6 +4,8 @@
 TX_ARGS="--from=val1 --node=http://localhost:16657 --chain-id=test-1 --fees=100000uluna --gas=1000000 --broadcast-mode=block -o json --yes"
 
 echo "Building wasm..."
+cargo build
+echo "Optimize wasm..."
 cargo-run-script optimize
 
 echo "Deploying on chain..."

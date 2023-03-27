@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Addr, Coin};
+use cosmwasm_std::Coin;
 
 #[cw_serde]
 pub struct InstantiateMsg {}
@@ -8,27 +8,27 @@ pub struct InstantiateMsg {}
 pub enum ExecuteMsg {
     Deposit(DepositMsg),
     UndelegateMsg {
-        del_addr: Addr,
-        val_addr: String,
+        delegator_address: String,
+        validator_address: String,
         amount: Coin,
     },
     RedelegateMsg {
-        del_addr: Addr,
-        src_val_addr: String,
-        dst_val_addr: String,
+        delegator_address: String,
+        validator_src_address: String,
+        validator_dst_address: String,
         amount: Coin,
     },
     ClaimRewardsMsg {
-        del_addr: Addr,
-        val_addr: String,
+        delegator_address: String,
+        validator_address: String,
         demom: String,
     },
 }
 
 #[cw_serde]
 pub struct DepositMsg {
-    pub del_addr: Addr,
-    pub val_addr: String,
+    pub delegator_address: String,
+    pub validator_address: String,
 }
 
 #[cw_serde]

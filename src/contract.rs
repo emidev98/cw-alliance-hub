@@ -1,10 +1,15 @@
-#[cfg(not(feature = "library"))]
-use cosmwasm_std::entry_point;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Coin, Addr, CosmosMsg};
-
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
+use cosmwasm_std::{
+    Binary, Coin, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+};
 use cw2::set_contract_version;
+use terra_proto_build::alliance::alliance::{MsgUndelegate, MsgRedelegate, MsgClaimDelegationRewards};
+use terra_proto_build::cosmos::base::v1beta1::Coin as CosmosNativeCoin;
+use terra_proto_build::cosmos::staking::v1beta1::MsgDelegate;
+use terra_proto_build::traits::Message;
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:cw-alliance";
@@ -29,56 +34,121 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Deposit(dep) => try_delegate(dep.del_addr, dep.val_addr, info.funds),
+        ExecuteMsg::Deposit(dep) => {
+            try_delegate(dep.delegator_address, dep.validator_address, info.funds)
+        }
         ExecuteMsg::UndelegateMsg {
-            del_addr,
-            val_addr,
+            delegator_address,
+            validator_address,
             amount,
-        } => try_undelegate(del_addr, val_addr, amount),
+        } => try_undelegate(delegator_address, validator_address, amount),
         ExecuteMsg::RedelegateMsg {
-            del_addr,
-            src_val_addr,
-            dst_val_addr,
+            delegator_address,
+            validator_src_address,
+            validator_dst_address,
             amount,
-        } => try_redelegate(del_addr, src_val_addr, dst_val_addr, amount),
+        } => try_redelegate(delegator_address, validator_src_address, validator_dst_address, amount),
         ExecuteMsg::ClaimRewardsMsg {
-            del_addr,
-            val_addr,
+            delegator_address,
+            validator_address,
             demom,
-        } => try_claim_rewards(del_addr, val_addr, demom),
+        } => try_claim_rewards(delegator_address, validator_address, demom),
     }
 }
 
-fn try_delegate(del_addr: Addr, val_addr: String, funds: Vec<Coin>)-> Result<Response, ContractError>{
-    if funds.len() != 1 {
-        return Err(ContractError::InvalidFunds{ });
+fn try_delegate(
+    delegator_address: String,
+    validator_address: String,
+    amount: Vec<Coin>,
+) -> Result<Response, ContractError> {
+    if amount.len() != 1 {
+        return Err(ContractError::InvalidFunds {});
     }
+
+    let amount = amount.first().unwrap();
+    let amount = Some(CosmosNativeCoin {
+        denom: amount.denom.to_string(),
+        amount: amount.amount.to_string(),
+    });
+
     let bin = MsgDelegate {
-        delegator_address: del_addr,
-        validator_address: val_addr,
-        amount: funds[0]
+        delegator_address,
+        validator_address,
+        amount,
     }
     .encode_to_vec();
 
-    let msg = CosmosMsg::Stargate {
-        type_url: "/cosmos.staking.v1beta1.MsgDelegate".to_string(),
+    Ok(Response::default().add_message(CosmosMsg::Stargate {
+        type_url: "/alliance.alliance.MsgDelegate".to_string(),
         value: Binary::from(bin),
-    };
-    Ok(Response::default())
+    }))
 }
 
-fn try_undelegate(del_addr: Addr, val_addr: String, amount: Coin)-> Result<Response, ContractError>{
-    Ok(Response::default())
+fn try_undelegate(
+    delegator_address: String,
+    validator_address: String,
+    amount: Coin,
+) -> Result<Response, ContractError> {
+    let amount = Some(CosmosNativeCoin {
+        denom: amount.denom.to_string(),
+        amount: amount.amount.to_string(),
+    });
+
+    let bin = MsgUndelegate {
+        delegator_address,
+        validator_address,
+        amount,
+    }
+    .encode_to_vec();
+
+    Ok(Response::default().add_message(CosmosMsg::Stargate {
+        type_url: "/alliance.alliance.MsgUndelegate".to_string(),
+        value: Binary::from(bin),
+    }))
 }
 
-fn try_redelegate(del_addr: Addr, src_val_addr: String, dst_val_addr: String, amount: Coin)-> Result<Response, ContractError>{
-    Ok(Response::default())
+fn try_redelegate(
+    delegator_address: String,
+    validator_src_address: String,
+    validator_dst_address: String,
+    amount: Coin,
+) -> Result<Response, ContractError> {
+    let amount = Some(CosmosNativeCoin {
+        denom: amount.denom.to_string(),
+        amount: amount.amount.to_string(),
+    });
+
+    let bin = MsgRedelegate {
+        delegator_address,
+        validator_src_address,
+        validator_dst_address,
+        amount,
+    }
+    .encode_to_vec();
+
+    Ok(Response::default().add_message(CosmosMsg::Stargate {
+        type_url: "/alliance.alliance.MsgRedelegate".to_string(),
+        value: Binary::from(bin),
+    }))
 }
 
-fn try_claim_rewards(del_addr: Addr, val_addr: String, demom: String)-> Result<Response, ContractError>{
-    Ok(Response::default())
-}
+fn try_claim_rewards(
+    delegator_address: String,
+    validator_address: String,
+    denom: String,
+) -> Result<Response, ContractError> {
+    let bin = MsgClaimDelegationRewards {
+        delegator_address,
+        validator_address,
+        denom,
+    }
+    .encode_to_vec();
 
+    Ok(Response::default().add_message(CosmosMsg::Stargate {
+        type_url: "/alliance.alliance.MsgClaimDelegationRewards".to_string(),
+        value: Binary::from(bin),
+    }))
+}
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
