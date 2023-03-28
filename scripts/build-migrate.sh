@@ -19,4 +19,4 @@ fi
 
 CONTRACT_ADDR=$(cat ./scripts/contract_addr.txt)
 echo "Migrating $CONTRACT_ADDR to $CODE_ID code on chain..."
-terrad tx wasm migrate $CONTRACT_ADDR $CODE_ID '{}' $TX_ARGS | jq -r .
+terrad tx wasm migrate $CONTRACT_ADDR $CODE_ID '{ "migrate": {}}' $TX_ARGS | jq -r .
