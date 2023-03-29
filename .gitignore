@@ -15,4 +15,7 @@
 # IDEs
 *.iml
 .idea
-contract_addr.txt
+
+
+# Metadata files from scripts
+scripts/.metadata

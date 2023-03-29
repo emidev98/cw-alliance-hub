@@ -6,7 +6,7 @@ TX_ARGS="--from=val1 --node=http://localhost:16657 --chain-id=test-1 --fees=1000
 
 WALLET_ADDRESS=$(terrad keys show val1 --output json | jq -r .address)
 VALIDATOR_ADDRESS=$(terrad query staking validators --node=http://localhost:16657 --output json | jq -r .validators[0].operator_address)
-CONTRACT_ADDR=$(cat ./scripts/contract_addr.txt)
+CONTRACT_ADDR=$(cat ./scripts/.metadata/alliance_hub_contract_addr.txt)
 
 echo "Executing x/alliance MsgDelegate thru $CONTRACT_ADDR on chain..."
 terrad tx wasm execute $CONTRACT_ADDR '{"delegate" : {"validator_address" :"'$VALIDATOR_ADDRESS'"}}' $TX_ARGS --amount=100uluna | jq 

@@ -1,4 +1,4 @@
-# CWAlliance
+# CWAllianceHub
 
 This Smart contract uses [x/alliance](https://github.com/terra-money/alliance) and [cw-nfts](https://github.com/CosmWasm/cw-nfts) standard enabling the users to stake multiple tokens and generate rewards. When tokens are staked using this smart contract the wallet will receive an NFT representation of the staked tokens that allows the owner of the NFT to claim the rewards, redelegate or redeem back the tokens.
 
@@ -43,8 +43,11 @@ This Smart contract uses [x/alliance](https://github.com/terra-money/alliance) a
         - check if NFT status is different than `UNDELEGATING` and block height is greather than current block height throw an error,
         - the smart contract will send the tokens written in the NFT metadata to the NFT owner and will set the NFT status to `UNDELEGATED`.
 
-> The smart contract will take a fee each time the user claims rewards to assure there is always a positive balance in the smart contract in case any of the validators is slashed.
+
+> :warning: **Slashing is not handled by the smart contract**. The smart contract will take a fee each time the user claims rewards to assure there is always a positive balance in the smart contract in case any of the validators is slashed.
 
 ### Query 
 
 - `ListNFTS` return the list of minted NFTS from `MsgDelegate`
+
+

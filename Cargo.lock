@@ -221,7 +221,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cw-alliance"
+name = "cw-alliance-hub"
 version = "0.1.0"
 dependencies = [
  "cosmwasm-schema",
@@ -231,7 +231,6 @@ dependencies = [
  "cw-storage-plus 1.0.1",
  "cw2 1.0.1",
  "cw721-metadata-onchain",
- "getrandom",
  "schemars",
  "serde",
  "terra-proto-rs",

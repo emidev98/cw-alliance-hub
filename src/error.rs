@@ -11,5 +11,7 @@ pub enum ContractError {
 
     #[error("Something went wrong minting the NFT")]
     NFTMintError {},
-    
+
+    #[error("Something went wrong trying to instantiate the NFT")]
+    NFTContractInstantiateError {},    
 }

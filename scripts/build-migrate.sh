@@ -10,13 +10,20 @@ echo "Optimize wasm..."
 cargo-run-script optimize
 
 echo "Deploying on chain..."
-CODE_ID=$(terrad tx wasm store ./artifacts/cw_alliance.wasm $TX_ARGS | jq -r .logs[0].events[1].attributes[1].value)
+ALLIANCE_HUB_CODE_ID=$(terrad tx wasm store ./artifacts/cw_alliance_hub.wasm $TX_ARGS | jq -r .logs[0].events[1].attributes[1].value)
 
-if [ "$CODE_ID" == "null" ]; then
+if [ "$ALLIANCE_HUB_CODE_ID" == "null" ]; then
   echo "Error: Failed to deploy the contract"
   exit 1
 fi
 
-CONTRACT_ADDR=$(cat ./scripts/contract_addr.txt)
-echo "Migrating $CONTRACT_ADDR to $CODE_ID code on chain..."
-terrad tx wasm migrate $CONTRACT_ADDR $CODE_ID '{ "migrate": {}}' $TX_ARGS | jq -r .
+CONTRACT_ADDR=$(cat ./scripts/.metadata/alliance_hub_contract_addr.txt)
+echo "Migrating $CONTRACT_ADDR to $ALLIANCE_HUB_CODE_ID code on chain..."
+MIGRATE_CODE=$(terrad tx wasm migrate $CONTRACT_ADDR $ALLIANCE_HUB_CODE_ID '{ "migrate": {}}' $TX_ARGS | jq -r .code)
+
+if [ "$MIGRATE_CODE" != "0" ]; then
+  echo "Error: Failed to migrate the contract"
+  exit 1
+fi
+
+echo $ALLIANCE_HUB_CODE_ID > ./scripts/.metadata/alliance_hub_code_id.txt
