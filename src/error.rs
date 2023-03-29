@@ -13,5 +13,8 @@ pub enum ContractError {
     NFTMintError {},
 
     #[error("Something went wrong trying to instantiate the NFT")]
-    NFTContractInstantiateError {},    
+    NFTContractInstantiateError {},
+
+    #[error("Something went wrong trying to pick a validator from range")]
+    InvalidValidator {},
 }

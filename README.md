@@ -8,7 +8,7 @@ This Smart contract uses [x/alliance](https://github.com/terra-money/alliance) a
     - User send [tokens](https://github.com/cosmos/cosmos-sdk/blob/main/types/coin.go#L173) to the smart contract,
     - the smart contract:
         - apply a find algorithm to the active validators and execute [MsgDelegate from x/alliance module](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L17),
-        - send a newly minted NFT to the user populating the metadata with the delegation information and nft status `DELEGATED` and current block height.
+        - send a newly minted NFT to the user populating the metadata with the delegatoin information and nft status `DELEGATED` and current block height.
 
 - `MsgUndelegate`
     - User send the NFT address (minted in MsgDelegate) to the smart contract,

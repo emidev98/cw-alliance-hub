@@ -1,6 +1,4 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Addr;
-
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -27,29 +25,8 @@ pub enum ExecuteMsg {
 
 #[cw_serde]
 pub enum QueryMsg {
-    ListNFTS { },
+    GetConfig { },
 }
-
-#[cw_serde]
-pub struct ListNFTSResponse {
-    pub nfts: Vec<NFTResponse>,
-}
-
-#[cw_serde]
-pub struct NFTResponse {
-    pub address: Addr,
-    pub undelegated: bool,
-}
-
-impl NFTResponse {
-    pub fn new(address: Addr, undelegated: bool) -> Self {
-        Self {
-            address,
-            undelegated,
-        }
-    }
-}
-
 
 #[cw_serde]
 pub enum MigrateMsg {
