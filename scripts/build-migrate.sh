@@ -6,8 +6,6 @@ TX_ARGS="--from=val1 --node=http://localhost:16657 --chain-id=test-1 --fees=1000
 
 echo "Building wasm..."
 cargo build
-echo "Optimize wasm..."
-cargo-run-script optimize
 
 echo "Deploying on chain..."
 ALLIANCE_HUB_CODE_ID=$(terrad tx wasm store ./artifacts/cw_alliance_hub.wasm $TX_ARGS | jq -r .logs[0].events[1].attributes[1].value)

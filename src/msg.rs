@@ -17,10 +17,10 @@ pub struct CW721Collection {
 #[cw_serde]
 pub enum ExecuteMsg {
     MsgDelegate { },
-    MsgUndelegate { nft_address: String },
-    MsgRedelegate { nft_address: String },
-    MsgClaimRewards { nft_address: String },
-    MsgRedeemUndelegation { nft_address: String },
+    MsgUndelegate { token_id: String },
+    MsgRedelegate { token_id: String },
+    MsgClaimRewards { token_id: String },
+    MsgRedeemUndelegation { token_id: String },
 }
 
 #[cw_serde]

@@ -9,9 +9,6 @@ TX_ARGS="--from=val1 --node=http://localhost:16657 --chain-id=test-1 --fees=1000
 echo "Building wasm..."
 cargo build
 
-echo "Optimize wasm..."
-cargo-run-script optimize
-
 echo "Deploying 'CW721 METADATA ONCHAIN' contract..."
 CW721_CODE_ID=$(terrad tx wasm store ./assets/cw721_metadata_onchain.wasm $TX_ARGS | jq -r .logs[0].events[1].attributes[1].value)
 
