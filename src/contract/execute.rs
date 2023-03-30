@@ -6,8 +6,7 @@ use crate::state::{DisplayStatus, DisplayType, CFG};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
     entry_point, to_binary, Binary, DepsMut, Env, MessageInfo,
-    QueryRequest, Response, AllValidatorsResponse, Coin, CosmosMsg, 
-    SubMsg, WasmMsg, StakingQuery, Validator, WasmQuery, QuerierWrapper,
+    Response, Coin, CosmosMsg, SubMsg, WasmMsg, Validator,
 };
 
 use cw721_metadata_onchain::{
@@ -15,9 +14,8 @@ use cw721_metadata_onchain::{
     MintMsg as Cw721MintMsg,  
     ExecuteMsg as Cw721ExecuteMsg, 
     Trait as CW721Trait,
-    QueryMsg as CW721Query
 };
-use cw721::AllNftInfoResponse;
+use terra_proto_rs::alliance::alliance::MsgUndelegate;
 use terra_proto_rs::traits::Message;
 use terra_proto_rs::{
     alliance::alliance::MsgDelegate,
@@ -25,9 +23,9 @@ use terra_proto_rs::{
     cosmos::base::v1beta1::Coin as CosmosNativeCoin,
 };
 
-use crate::contract::constants::MINT_NFT_REPLY;
+use crate::contract::constants::{MINT_NFT_REPLY, DEFAULT_DELIMITER};
 
-use super::constants::DEFAULT_DELIMITER;
+use super::query;
 
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -49,11 +47,12 @@ pub fn execute(
 
 fn try_delegate(env: Env, info: MessageInfo, deps: DepsMut) -> Result<Response, ContractError> {
     let cfg = CFG.load(deps.storage)?;
-    let res: AllValidatorsResponse = deps
-        .querier
-        .query(&QueryRequest::Staking(StakingQuery::AllValidators {}))?;
+    let validators = query::all_validators(deps.querier);
+    if validators.len() == 0 {
+        return Err(ContractError::NoValidatorsFound {});
+    }
 
-    let msg_delegate = generate_delegate_msg(info.funds, env.clone(), res.validators);
+    let msg_delegate = generate_delegate_msg(info.funds, env.clone(), validators);
     let msg_mint = generate_mint_msg(
         info.sender.clone().into(),
         env.block.height,
@@ -159,13 +158,51 @@ fn get_pseudorandom(block_height: u64, max: u64) -> u64 {
 }
 
 fn try_undelegate(
-    _env: Env,
-    _info: MessageInfo,
-    _deps: DepsMut,
-    _token_id: String,
+    env: Env,
+    info: MessageInfo,
+    deps: DepsMut,
+    token_id: String,
 ) -> Result<Response, ContractError> {
-    // TODO Implement
-    Ok(Response::default())
+    let cfg = CFG.load(deps.storage)?;
+    let query_res = query::all_nft_info(
+        deps.querier, 
+        token_id.clone(), 
+        cfg.nft_contract_addr.to_string()
+    );
+    if query_res.access.owner != info.sender.to_string() {
+        return Err(ContractError::UnauthorizedNFTOwnere(
+            query_res.access.owner, 
+            info.sender.to_string()
+        ));
+    }
+    let attrs = query_res.info.extension.attributes.unwrap_or(vec![]);
+    if attrs.len() == 0 {
+        return Err(ContractError::NoDelegationsFound(token_id))
+    }
+
+    let msgs = attrs.iter()
+        .map(|attr| {
+            let coin = attr.value.split(DEFAULT_DELIMITER).collect::<Vec<&str>>();
+            let msg = MsgUndelegate {
+                delegator_address: env.contract.address.to_string(),
+                validator_address: attr.trait_type.clone(),
+                amount: Some(CosmosNativeCoin { 
+                    amount: coin[0].to_string(),
+                    denom: coin[1].to_string(), 
+                }),
+            }.encode_to_vec();
+
+            CosmosMsg::Stargate {
+                type_url: "/alliance.alliance.MsgUndelegate".to_string(),
+                value: Binary::from(msg),
+            }
+        })
+        .collect::<Vec<CosmosMsg>>();
+
+    Ok(Response::new()
+        .add_attribute("action", "undelegate")
+        .add_attribute("sender", info.sender.to_string())
+        .add_messages(msgs))
 }
 
 fn try_redelegate(
@@ -185,7 +222,7 @@ fn try_claim_rewards(
     token_id: String,
 ) -> Result<Response, ContractError> {
     let cfg = CFG.load(deps.storage)?;
-    let query_res = query_all_nft_info(
+    let query_res = query::all_nft_info(
         deps.querier, 
         token_id.clone(), 
         cfg.nft_contract_addr.to_string()
@@ -223,19 +260,6 @@ fn try_claim_rewards(
         .add_messages(msgs))
 }
 
-fn query_all_nft_info(querier: QuerierWrapper, token_id: String, contract_addr: String) -> AllNftInfoResponse<CW721Metadata> {
-    let msg = to_binary(&CW721Query::AllNftInfo {
-        token_id,
-        include_expired: None,
-    }).unwrap();
-    
-    let res: AllNftInfoResponse<CW721Metadata> = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr,
-        msg
-    })).unwrap();
-
-    res
-}
 
 fn try_redeem_undelegation(
     _env: Env,

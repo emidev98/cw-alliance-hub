@@ -4,7 +4,7 @@
 ## Flows ##
 ###########
 
-all: token alliance init delegate build-migrate
+all: token alliance init delegate claim-rewards undelegate
 
 .PHONY: all
 #################################
@@ -17,19 +17,22 @@ init: contract-optimize
 delegate:
 	bash ./scripts/execute-contract/delegate.sh
 
+undelegate:
+	bash ./scripts/execute-contract/undelegate.sh
+
 claim-rewards:
 	bash ./scripts/execute-contract/claim-rewards.sh
 
 build-migrate: contract-optimize
 	bash ./scripts/build-migrate.sh
 
-contract-all: init delegate claim-rewards
+contract-all: init delegate claim-rewards undelegate
 
 contract-optimize: 
 	docker run --rm -v "$(shell pwd)":/code \
 		--mount type=volume,source="$(shell basename $(shell pwd))_cache",target=/code/target \
 		--mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-		cosmwasm/rust-optimizer:0.12.12
+		cosmwasm/rust-optimizer:0.12.13
 
 .PHONY: init build-migrate delegate smart-contract-flow contract-optimize
 

@@ -12,6 +12,9 @@ pub enum ContractError {
     #[error("NFT '{0}' has no delegations")]
     NoDelegationsFound(String),
 
+    #[error("Something went wrong quering the validatos of the network")]
+    NoValidatorsFound{},
+
     #[error("Something went wrong minting the NFT")]
     NFTMintError {},
 
