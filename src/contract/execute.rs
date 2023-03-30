@@ -6,10 +6,7 @@ use crate::state::{DisplayStatus, DisplayType, CFG};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
     entry_point, to_binary, Binary, DepsMut, Env, MessageInfo,
-    QueryRequest, Response,
-};
-use cosmwasm_std::{
-    AllValidatorsResponse, Coin, CosmosMsg, 
+    QueryRequest, Response, AllValidatorsResponse, Coin, CosmosMsg, 
     SubMsg, WasmMsg, StakingQuery, Validator, WasmQuery, QuerierWrapper,
 };
 
@@ -20,14 +17,18 @@ use cw721_metadata_onchain::{
     Trait as CW721Trait,
     QueryMsg as CW721Query
 };
-use cw721::OwnerOfResponse;
+use cw721::AllNftInfoResponse;
 use terra_proto_rs::traits::Message;
 use terra_proto_rs::{
     alliance::alliance::MsgDelegate,
+    alliance::alliance::MsgClaimDelegationRewards,
     cosmos::base::v1beta1::Coin as CosmosNativeCoin,
 };
 
 use crate::contract::constants::MINT_NFT_REPLY;
+
+use super::constants::DEFAULT_DELIMITER;
+
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
@@ -41,12 +42,8 @@ pub fn execute(
         ExecuteMsg::MsgDelegate {} => try_delegate(env, info, deps),
         ExecuteMsg::MsgUndelegate { token_id } => try_undelegate(env, info, deps, token_id),
         ExecuteMsg::MsgRedelegate { token_id } => try_redelegate(env, info, deps, token_id),
-        ExecuteMsg::MsgClaimRewards { token_id } => {
-            try_claim_rewards(env, info, deps, token_id)
-        }
-        ExecuteMsg::MsgRedeemUndelegation { token_id } => {
-            try_redeem_undelegation(env, info, deps, token_id)
-        }
+        ExecuteMsg::MsgClaimRewards { token_id } => try_claim_rewards(env, info, deps, token_id),
+        ExecuteMsg::MsgRedeemUndelegation { token_id } => try_redeem_undelegation(env, info, deps, token_id),
     }
 }
 
@@ -123,19 +120,17 @@ fn generate_mint_msg(
         .iter()
         .map(|msg| {
             let unwrapped_coin = msg.amount.as_ref().unwrap();
-            let value = unwrapped_coin.amount.clone().add(&unwrapped_coin.denom);
+            let value = unwrapped_coin.amount.clone().add(DEFAULT_DELIMITER).add(&unwrapped_coin.denom);
             let display_type = DisplayType {
                 display_status: DisplayStatus::Delegated {},
                 height: block_height,
             };
 
-            let nft_trait = CW721Trait {
+            CW721Trait {
                 display_type: Some(display_type.to_string()),
                 trait_type: msg.validator_address.to_string(),
                 value: value,
-            };
-
-            nft_trait
+            }
         })
         .collect::<Vec<CW721Trait>>();
 
@@ -184,33 +179,57 @@ fn try_redelegate(
 }
 
 fn try_claim_rewards(
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     deps: DepsMut,
     token_id: String,
 ) -> Result<Response, ContractError> {
     let cfg = CFG.load(deps.storage)?;
-
-    let wasm_query: OwnerOfResponse = query_nft_owner(
+    let query_res = query_all_nft_info(
         deps.querier, 
-        token_id, 
+        token_id.clone(), 
         cfg.nft_contract_addr.to_string()
     );
-
-    if wasm_query.owner != info.sender.to_string() {
-        return Err(ContractError::Unauthorized {});
+    if query_res.access.owner != info.sender.to_string() {
+        return Err(ContractError::UnauthorizedNFTOwnere(
+            query_res.access.owner, 
+            info.sender.to_string()
+        ));
     }
-    
-    Ok(Response::default())
+    let attrs = query_res.info.extension.attributes.unwrap_or(vec![]);
+    if attrs.len() == 0 {
+        return Err(ContractError::NoDelegationsFound(token_id))
+    }
+
+    let msgs = attrs.iter()
+        .map(|attr| {
+            let coin = attr.value.split(DEFAULT_DELIMITER).collect::<Vec<&str>>();
+            let msg = MsgClaimDelegationRewards {
+                delegator_address: env.contract.address.to_string(),
+                validator_address: attr.trait_type.clone(),
+                denom: coin[1].to_string(),
+            }.encode_to_vec();
+
+            CosmosMsg::Stargate {
+                type_url: "/alliance.alliance.MsgClaimDelegationRewards".to_string(),
+                value: Binary::from(msg),
+            }
+        })
+        .collect::<Vec<CosmosMsg>>();
+
+    Ok(Response::new()
+        .add_attribute("action", "claim_rewards")
+        .add_attribute("sender", info.sender.to_string())
+        .add_messages(msgs))
 }
 
-fn query_nft_owner(querier: QuerierWrapper, token_id: String, contract_addr: String) -> OwnerOfResponse {
-    let msg = to_binary(&CW721Query::OwnerOf {
+fn query_all_nft_info(querier: QuerierWrapper, token_id: String, contract_addr: String) -> AllNftInfoResponse<CW721Metadata> {
+    let msg = to_binary(&CW721Query::AllNftInfo {
         token_id,
         include_expired: None,
     }).unwrap();
     
-    let res: OwnerOfResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+    let res: AllNftInfoResponse<CW721Metadata> = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr,
         msg
     })).unwrap();

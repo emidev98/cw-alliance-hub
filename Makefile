@@ -23,7 +23,7 @@ claim-rewards:
 build-migrate: contract-optimize
 	bash ./scripts/build-migrate.sh
 
-smart-contract-flow: init build-migrate delegate claim-rewards
+contract-all: init delegate claim-rewards
 
 contract-optimize: 
 	docker run --rm -v "$(shell pwd)":/code \

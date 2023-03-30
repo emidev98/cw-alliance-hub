@@ -4,6 +4,8 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 
+use crate::contract::constants::DEFAULT_DELIMITER;
+
 // Contain the list of nfts minted by the contract
 // Where the key is the address of the nft and the
 // boolean value represents if the user has executed
@@ -27,8 +29,8 @@ pub struct DisplayType {
 impl fmt::Display for DisplayType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-            "{:?},{}",
-            self.display_status, self.height
+            "{:?}{}{}",
+            self.display_status, DEFAULT_DELIMITER, self.height
         )
     }
 }
