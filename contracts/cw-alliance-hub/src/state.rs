@@ -4,7 +4,6 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 
-use crate::entry_points::constants::DEFAULT_DELIMITER;
 
 // Contain the list of nfts minted by the contract
 // Where the key is the address of the nft and the
@@ -15,71 +14,66 @@ pub const CFG: Item<Cfg> = Item::new("config");
 #[cw_serde]
 pub struct Cfg {
     pub minted_nfts: u64,
-    pub nft_contract_addr: Addr,
+    pub unbonding_seconds: u64,
+    pub nft_contract_addr: Option<Addr>,
 }
 
-
-#[cw_serde]
-pub struct DisplayType {
-    pub display_status: DisplayStatus,
-    pub height: u64,
-}
-
-// Implement the `Display` trait for `DisplayType`
-impl fmt::Display for DisplayType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-            "{:?}{}{}",
-            self.display_status, DEFAULT_DELIMITER, self.height
-        )
-    }
-}
-
-impl Into<DisplayType> for String {
-    fn into(self) -> DisplayType {
-        let parts: Vec<&str> = self.split(',').collect();
-        let display_status = DisplayStatus::from_str(parts[0]).unwrap_or(DisplayStatus::Unknown);
-        let height = parts[1].parse::<u64>().unwrap_or(0);
-
-        DisplayType {
-            display_status,
-            height,
+impl Cfg {
+    pub fn new(unbonding_seconds: u64) -> Self {
+        Cfg {
+            minted_nfts: 0,
+            nft_contract_addr: None,
+            unbonding_seconds: unbonding_seconds,
         }
     }
 }
 
+
 #[cw_serde]
-pub enum DisplayStatus {
+pub enum DisplayType {
     Delegated,
     Redelegating,
-    Undelegating,
+    Unbonding,
     Undelegated,
     Unknown,
 }
 
-impl FromStr for DisplayStatus {
+impl FromStr for DisplayType {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "Delegated" => Ok(DisplayStatus::Delegated),
-            "Redelegating" => Ok(DisplayStatus::Redelegating),
-            "Undelegating" => Ok(DisplayStatus::Undelegating),
-            "Undelegated" => Ok(DisplayStatus::Undelegated),
-            "Unknown" => Ok(DisplayStatus::Unknown),
+            "Delegated" => Ok(DisplayType::Delegated),
+            "Unbonding" => Ok(DisplayType::Unbonding),
+            "Redelegating" => Ok(DisplayType::Redelegating),
+            "Undelegated" => Ok(DisplayType::Undelegated),
+            "Unknown" => Ok(DisplayType::Unknown),
             _ => Err(()),
         }
     }
 }
 
-impl fmt::Display for DisplayStatus {
+impl fmt::Display for DisplayType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DisplayStatus::Delegated => write!(f,"Delegated"),
-            DisplayStatus::Redelegating => write!(f,"Redelegating"),
-            DisplayStatus::Undelegating => write!(f,"Undelegating"),
-            DisplayStatus::Undelegated => write!(f,"Undelegated"),
-            DisplayStatus::Unknown => write!(f,"Unknown"),
+            DisplayType::Delegated => write!(f,"Delegated"),
+            DisplayType::Unbonding => write!(f,"Unbonding"),
+            DisplayType::Redelegating => write!(f,"Redelegating"),
+            DisplayType::Undelegated => write!(f,"Undelegated"),
+            DisplayType::Unknown => write!(f,"Unknown"),
+        }
+    }
+}
+
+impl Into<DisplayType> for String {
+    fn into(self) -> DisplayType {
+        match self.as_str() {
+            "Delegated" => DisplayType::Delegated,
+            "Unbonding" => DisplayType::Unbonding,
+            "Redelegating" => DisplayType::Redelegating,
+            "Undelegated" => DisplayType::Undelegated,
+            "Unknown" => DisplayType::Unknown,
+            _ => DisplayType::Unknown,
         }
     }
 }

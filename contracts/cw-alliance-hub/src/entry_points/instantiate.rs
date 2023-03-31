@@ -1,4 +1,5 @@
-use crate::error::ContractError;
+use crate::state::Cfg;
+use crate::{error::ContractError, state::CFG};
 use crate::msg::InstantiateMsg;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{entry_point, to_binary, DepsMut, Env, MessageInfo,Response};
@@ -37,16 +38,17 @@ pub fn instantiate(
         WasmMsg::Instantiate {
             code_id: msg.cw721_code_id,
             msg: to_binary(&cw721_instantiate_msg)?,
-            funds: info.funds,
+            funds: vec![],
             label: msg.cw721_collection.name.clone(),
             admin: Some(env.contract.address.to_string()),
         },
         INSTANTIATE_REPLY_ID,
     );
+    
+    CFG.save(deps.storage,&Cfg::new(msg.cw721_unbonding_seconds))?;
 
     Ok(Response::new()
         .add_submessage(cw721_instantiate_submsg)
         .add_attribute("action", "instantiate_alliance_hub")
-        .add_attribute("sender", info.sender)
-        .add_attribute("cw721_label", msg.cw721_collection.name))
+        .add_attribute("sender", info.sender))
 }

@@ -4,7 +4,7 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
 
-use cosmwasm_std::{Addr, BlockInfo, CustomMsg, StdResult, Storage};
+use cosmwasm_std::{Addr, BlockInfo, CustomMsg, StdResult, Storage, Timestamp};
 
 use cw721::{ContractInfoResponse, Cw721, Expiration};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
@@ -150,8 +150,9 @@ pub fn token_owner_idx<T>(_pk: &[u8], d: &TokenInfo<T>) -> Addr {
 
 #[cw_serde]
 pub struct Trait {
-    pub display_type: Option<String>,
+    pub display_type: String,
     pub trait_type: String,
+    pub timestamp: Timestamp,
     pub value: String,
 }
 // see: https://docs.opensea.io/docs/metadata-standards

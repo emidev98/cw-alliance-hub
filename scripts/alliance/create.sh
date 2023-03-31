@@ -14,5 +14,5 @@ if [ "$VOTE_RES" != "0" ]; then
   exit 1
 fi
 
-echo "Proposal voted successfully, waiting 10s for it to pass..."
+echo "Proposal voted successfully, waiting 10s for the proposal '$PROPOSAL_ID' to pass..."
 sleep 10

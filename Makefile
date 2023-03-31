@@ -4,7 +4,7 @@
 ## Flows ##
 ###########
 
-all: token alliance init delegate claim-rewards undelegate
+all: token alliance init delegate claim-rewards start-unbonding
 
 .PHONY: all
 #################################
@@ -17,8 +17,8 @@ init: optimize-workspace
 delegate:
 	bash ./scripts/execute-contract/delegate.sh
 
-undelegate:
-	bash ./scripts/execute-contract/undelegate.sh
+start-unbonding:
+	bash ./scripts/execute-contract/start-unbonding.sh
 
 claim-rewards:
 	bash ./scripts/execute-contract/claim-rewards.sh
@@ -26,7 +26,7 @@ claim-rewards:
 build-migrate: optimize-workspace
 	bash ./scripts/build-migrate.sh
 
-contract-all: init delegate claim-rewards undelegate
+contract-all: init delegate claim-rewards start-unbonding
 
 optimize-workspace: 
 	docker run --rm -v "$(shell pwd)":/code \
