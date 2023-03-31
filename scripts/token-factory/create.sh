@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p ./scripts/.metadata
+
 SALT=$(openssl rand -hex 2)
 TOKEN_DENOM=utest$SALT
 MINT_AMOUNT=1000000000000

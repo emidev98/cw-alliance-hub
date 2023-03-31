@@ -10,10 +10,10 @@ echo "Building wasm..."
 cargo build
 
 echo "Deploying 'CW721 METADATA ONCHAIN' contract..."
-CW721_CODE_ID=$(terrad tx wasm store ./assets/cw721_metadata_onchain.wasm $TX_ARGS | jq -r .logs[0].events[1].attributes[1].value)
+CW721_CODE_ID=$(terrad tx wasm store ./artifacts/cw721_progressive_metadata.wasm $TX_ARGS | jq -r .logs[0].events[1].attributes[1].value)
 
 if [ "$CW721_CODE_ID" == "null" ]; then
-  echo "Error: Failed to deploy 'cw721_metadata_onchain' contract '$CW721_CODE_ID'"
+  echo "Error: Failed to deploy 'cw721_progressive_metadata' contract '$CW721_CODE_ID'"
   exit 1
 fi
 

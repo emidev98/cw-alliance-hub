@@ -8,10 +8,12 @@ use cosmwasm_std::{
 };
 use cw721::AllNftInfoResponse;
 
-use cw721_metadata_onchain::{
-    Metadata as CW721Metadata, 
-    QueryMsg as CW721Query
+use cw721_progressive_metadata::{
+    state::Metadata as CW721Metadata,
+    QueryMsg as CW721QueryEmpty
 };
+
+type CW721Query = CW721QueryEmpty<CW721Metadata>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {

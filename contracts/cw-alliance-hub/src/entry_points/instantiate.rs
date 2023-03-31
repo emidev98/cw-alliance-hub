@@ -5,10 +5,10 @@ use cosmwasm_std::{entry_point, to_binary, DepsMut, Env, MessageInfo,Response};
 use cosmwasm_std::{SubMsg, WasmMsg};
 
 use cw2::set_contract_version;
-use cw721_metadata_onchain::{
+use cw721_progressive_metadata::{
     InstantiateMsg as Cw721InstantiateMsg,
 };
-use crate::contract::constants::{
+use super::constants::{
     CONTRACT_NAME, 
     CONTRACT_VERSION,
     INSTANTIATE_REPLY_ID,

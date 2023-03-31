@@ -3,30 +3,36 @@ use std::ops::Add;
 use crate::error::ContractError;
 use crate::msg::ExecuteMsg;
 use crate::state::{DisplayStatus, DisplayType, CFG};
+use cosmwasm_std::Empty;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
     entry_point, to_binary, Binary, DepsMut, Env, MessageInfo,
     Response, Coin, CosmosMsg, SubMsg, WasmMsg, Validator,
 };
 
-use cw721_metadata_onchain::{
-    Metadata as CW721Metadata, 
-    MintMsg as Cw721MintMsg,  
-    ExecuteMsg as Cw721ExecuteMsg, 
-    Trait as CW721Trait,
+use cw721_progressive_metadata::state::Extension;
+use cw721_progressive_metadata::{
+    ExecuteMsg as Cw721ExecuteDefaultMsg, 
+    state:: {
+        Trait as CW721Trait,
+        Metadata as CW721Metadata, 
+    }
 };
-use terra_proto_rs::alliance::alliance::MsgUndelegate;
-use terra_proto_rs::traits::Message;
 use terra_proto_rs::{
-    alliance::alliance::MsgDelegate,
-    alliance::alliance::MsgClaimDelegationRewards,
+    alliance::alliance::{
+        MsgUndelegate,
+        MsgDelegate,
+        MsgClaimDelegationRewards
+    },
+    traits::Message,
     cosmos::base::v1beta1::Coin as CosmosNativeCoin,
 };
+use super::{
+    query,
+    constants::{MINT_NFT_REPLY, DEFAULT_DELIMITER}
+};
 
-use crate::contract::constants::{MINT_NFT_REPLY, DEFAULT_DELIMITER};
-
-use super::query;
-
+type Cw721ExecuteMsg = Cw721ExecuteDefaultMsg<Extension, Empty>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
@@ -75,7 +81,7 @@ fn try_delegate(env: Env, info: MessageInfo, deps: DepsMut) -> Result<Response, 
         .add_attribute("sender", info.sender.to_string())
         .add_submessage(SubMsg::reply_always(WasmMsg::Execute {
             contract_addr: cfg.nft_contract_addr.to_string(),
-            msg: to_binary(&Cw721ExecuteMsg::Mint(msg_mint))?,
+            msg: to_binary(&msg_mint)?,
             funds: vec![],
         }, MINT_NFT_REPLY))
         .add_messages(delegate_msgs))
@@ -114,7 +120,7 @@ fn generate_mint_msg(
     block_height: u64,
     nft_id: String,
     msg_delegate: Vec<MsgDelegate>,
-) -> Cw721MintMsg<Option<CW721Metadata>> {
+) -> Cw721ExecuteMsg  {
     let attributes = msg_delegate
         .iter()
         .map(|msg| {
@@ -133,7 +139,7 @@ fn generate_mint_msg(
         })
         .collect::<Vec<CW721Trait>>();
 
-    Cw721MintMsg::<Option<CW721Metadata>> {
+    let msg = Cw721ExecuteMsg::Mint{
         token_id: nft_id.clone(),
         owner: sender,
         token_uri: None,
@@ -147,8 +153,9 @@ fn generate_mint_msg(
             background_color: None,
             animation_url: None,
             youtube_url: None,
-        }),
-    }
+        })};
+
+    msg
 }
 
 fn get_pseudorandom(block_height: u64, max: u64) -> u64 {

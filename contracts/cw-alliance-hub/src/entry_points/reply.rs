@@ -7,7 +7,7 @@ use cosmwasm_std::{
 };
 use cosmwasm_std::{Reply, StdError};
 
-use crate::contract::constants::{
+use super::constants::{
     MINT_NFT_REPLY,
     INSTANTIATE_REPLY_ID,
 };

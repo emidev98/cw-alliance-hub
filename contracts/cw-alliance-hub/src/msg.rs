@@ -1,4 +1,5 @@
-use cosmwasm_schema::cw_serde;
+use cosmwasm_schema::{cw_serde, QueryResponses};
+use crate::state::Cfg;
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -24,11 +25,13 @@ pub enum ExecuteMsg {
 }
 
 #[cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
+    #[returns(Cfg)]
     GetConfig { },
 }
 
 #[cw_serde]
 pub enum MigrateMsg {
-    Migrate {}
+    Migrate { },
 }

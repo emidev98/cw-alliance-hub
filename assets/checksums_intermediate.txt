@@ -1,1 +1,0 @@
-8327cd9ea379721c4dc36328d857c04622b0fe7000e075093def61f2e7c69540  target/wasm32-unknown-unknown/release/cw721_metadata_onchain.wasm

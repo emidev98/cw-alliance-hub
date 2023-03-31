@@ -4,7 +4,7 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 
-use crate::contract::constants::DEFAULT_DELIMITER;
+use crate::entry_points::constants::DEFAULT_DELIMITER;
 
 // Contain the list of nfts minted by the contract
 // Where the key is the address of the nft and the

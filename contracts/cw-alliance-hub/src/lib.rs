@@ -1,4 +1,4 @@
-pub mod contract {
+pub mod entry_points {
     pub mod constants;
     pub mod execute;
     pub mod instantiate;
@@ -6,9 +6,8 @@ pub mod contract {
     pub mod query;
     pub mod reply;
 }
-mod error;
-pub mod helpers;
 pub mod msg;
 pub mod state;
+mod error;
 
 pub use crate::error::ContractError;

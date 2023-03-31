@@ -1,1 +1,0 @@
-cdc664de9e60ed7b7d084d0d803207c55d27d9ce350a690228f5c1d1faf0f043  cw721_metadata_onchain.wasm
