@@ -20,13 +20,17 @@ delegate:
 start-unbonding:
 	bash ./scripts/execute-contract/start-unbonding.sh
 
+redeem-bond:
+	bash ./scripts/execute-contract/redeem-bond.sh
+
 claim-rewards:
 	bash ./scripts/execute-contract/claim-rewards.sh
 
+redelegate:
+	bash ./scripts/execute-contract/redelegate.sh
+	
 build-migrate: optimize-workspace
 	bash ./scripts/build-migrate.sh
-
-contract-all: init delegate claim-rewards start-unbonding
 
 optimize-workspace: 
 	docker run --rm -v "$(shell pwd)":/code \
