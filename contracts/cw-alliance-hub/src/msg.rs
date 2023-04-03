@@ -1,4 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::{Decimal, Uint128};
+use crate::alliance_queries::AllianceInfo;
 use crate::state::Cfg;
 
 #[cw_serde]
@@ -30,9 +32,36 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     #[returns(Cfg)]
     GetConfig { },
+
+    #[returns(AllianceInfo)]
+    GetAllianceInfo { denom: String },
+
+    #[returns(TokenMetadata)]
+    GetMetadata { denom: String},
 }
 
 #[cw_serde]
 pub enum MigrateMsg {
     Migrate { },
+}
+
+#[cw_serde]
+pub struct TokenMetadata {
+    metadata: Metadata
+}
+
+#[cw_serde]
+pub struct Metadata {
+    pub description: String,
+    pub denom_units: Vec<DenomUnit>,
+    pub base: String,
+    pub display: String,
+    pub name: String,
+    pub symbol: String,
+}
+#[cw_serde]
+pub struct DenomUnit {
+    pub denom: String,
+    pub exponent: u32,
+    pub aliases: Option<Vec<String>>,
 }

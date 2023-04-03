@@ -9,5 +9,6 @@ pub mod entry_points {
 pub mod msg;
 pub mod state;
 mod error;
+mod alliance_queries;
 
 pub use crate::error::ContractError;
