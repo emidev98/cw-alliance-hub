@@ -31,11 +31,11 @@ impl Cfg {
 
 #[cw_serde]
 pub enum DisplayType {
+    Unknown,
+    Unbonded,
+    Unbonding,
     Delegated,
     Redelegating,
-    Unbonding,
-    Undelegated,
-    Unknown,
 }
 
 impl FromStr for DisplayType {
@@ -46,7 +46,7 @@ impl FromStr for DisplayType {
             "Delegated" => Ok(DisplayType::Delegated),
             "Unbonding" => Ok(DisplayType::Unbonding),
             "Redelegating" => Ok(DisplayType::Redelegating),
-            "Undelegated" => Ok(DisplayType::Undelegated),
+            "Unbonded" => Ok(DisplayType::Unbonded),
             "Unknown" => Ok(DisplayType::Unknown),
             _ => Err(()),
         }
@@ -59,7 +59,7 @@ impl fmt::Display for DisplayType {
             DisplayType::Delegated => write!(f,"Delegated"),
             DisplayType::Unbonding => write!(f,"Unbonding"),
             DisplayType::Redelegating => write!(f,"Redelegating"),
-            DisplayType::Undelegated => write!(f,"Undelegated"),
+            DisplayType::Unbonded => write!(f,"Unbonded"),
             DisplayType::Unknown => write!(f,"Unknown"),
         }
     }
@@ -71,7 +71,7 @@ impl Into<DisplayType> for String {
             "Delegated" => DisplayType::Delegated,
             "Unbonding" => DisplayType::Unbonding,
             "Redelegating" => DisplayType::Redelegating,
-            "Undelegated" => DisplayType::Undelegated,
+            "Unbonded" => DisplayType::Unbonded,
             "Unknown" => DisplayType::Unknown,
             _ => DisplayType::Unknown,
         }

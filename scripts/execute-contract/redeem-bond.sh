@@ -7,16 +7,16 @@ TX_ARGS="--from=val1 --node=http://localhost:16657 --chain-id=test-1 --fees=1000
 CONTRACT_ADDR=$(cat ./scripts/.metadata/alliance_hub_contract_addr.txt)
 MINTED_NFT_INDEX=$(cat ./scripts/.metadata/minted_nft_index.txt)
 
-echo "Executing x/alliance MsgStartUnbonding for NFT $MINTED_NFT_INDEX thru $CONTRACT_ADDR on chain..."
+echo "Executing x/alliance MsgRedeemBond for NFT $MINTED_NFT_INDEX thru $CONTRACT_ADDR on chain..."
 
-UNDELEGATE_RES=$(terrad tx wasm execute $CONTRACT_ADDR '{"msg_start_unbonding": { "token_id" : "'$MINTED_NFT_INDEX'" }}' $TX_ARGS)
-CODE_RES=$(echo $UNDELEGATE_RES | jq -r .code)
-TX_HASH=$(echo $UNDELEGATE_RES | jq -r .txhash)
+REDEEM_BOND_RES=$(terrad tx wasm execute $CONTRACT_ADDR '{"msg_redeem_bond": { "token_id" : "'$MINTED_NFT_INDEX'" }}' $TX_ARGS)
+CODE_RES=$(echo $REDEEM_BOND_RES | jq -r .code)
+TX_HASH=$(echo $REDEEM_BOND_RES | jq -r .txhash)
 
 if [ "$CODE_RES" != "0" ]; then
-  echo "Error: Failed to undelegate $UNDELEGATE_RES"
+  echo "Error: Failed to undelegate $REDEEM_BOND_RES"
   exit 1
 fi
 
-echo "Undelegate executed successfully"
+echo "Redeem Bond executed successfully"
 echo " - TX_HASH $TX_HASH"
