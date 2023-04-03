@@ -9,7 +9,7 @@ use cosmwasm_std::{
     entry_point, to_binary, Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, SubMsg,
     Validator, WasmMsg,
 };
-use cosmwasm_std::{BankMsg, Empty, Timestamp, Uint128};
+use cosmwasm_std::{BankMsg, Empty, Timestamp, Uint128, StdError};
 use terra_proto_rs::alliance::alliance::MsgRedelegate;
 
 use super::{
@@ -33,7 +33,7 @@ use terra_proto_rs::{
     traits::Message,
 };
 
-type Cw721ExecuteMsg = Cw721ExecuteDefaultMsg<Extension, Empty>;
+pub type Cw721ExecuteMsg = Cw721ExecuteDefaultMsg<Extension, Empty>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
@@ -60,8 +60,14 @@ fn try_delegate(env: Env, info: MessageInfo, deps: DepsMut) -> Result<Response, 
     if validators.len() == 0 {
         return Err(ContractError::NoValidatorsFound {});
     }
+    if info.funds.len() == 0 {
+        return Err(ContractError::NoFundsReceived {});
+    }
 
-    let msg_delegate = generate_delegate_msg(info.funds, env.clone(), validators);
+    let msg_delegate = match generate_delegate_msg(info.funds, env.clone(), validators) {
+        Ok(msg) => msg,
+        Err(e) => return Err(e),
+    };
     let msg_mint = generate_mint_msg(
         info.sender.clone().into(),
         env.block.time,
@@ -95,14 +101,16 @@ fn generate_delegate_msg(
     funds: Vec<Coin>,
     env: Env,
     validators: Vec<Validator>,
-) -> Vec<MsgDelegate> {
+) -> Result<Vec<MsgDelegate>, ContractError> {
     let mut vals_len = validators.len() as u64;
     funds
         .iter()
         .map(|coin| {
             let pseudorandom_index = get_pseudorandom(env.block.height, vals_len);
             let val = &validators[pseudorandom_index as usize];
-
+            if coin.amount == Uint128::new(0) {
+                return Err(ContractError::NoFundsReceived {});
+            }
             let msg_delegate = MsgDelegate {
                 delegator_address: env.contract.address.to_string(),
                 validator_address: val.address.to_string(),
@@ -118,9 +126,9 @@ fn generate_delegate_msg(
                 vals_len = vals_len - 1
             }
 
-            msg_delegate
+            Ok(msg_delegate)
         })
-        .collect::<Vec<MsgDelegate>>()
+        .collect::<Result<Vec<MsgDelegate>,ContractError>>()
 }
 
 fn generate_mint_msg(
@@ -133,6 +141,7 @@ fn generate_mint_msg(
         .iter()
         .map(|msg| {
             let unwrapped_coin = msg.amount.as_ref().unwrap();
+            
             let value = unwrapped_coin
                 .amount
                 .clone()

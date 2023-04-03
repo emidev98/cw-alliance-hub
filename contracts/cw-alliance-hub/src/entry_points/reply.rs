@@ -2,17 +2,12 @@ use std::ops::Add;
 
 use crate::state::CFG;
 #[cfg(not(feature = "library"))]
-use cosmwasm_std::{
-    entry_point, Addr, DepsMut, Env, Response, StdResult,
-};
+use cosmwasm_std::{entry_point, Addr, DepsMut, Env, Response, StdResult};
 use cosmwasm_std::{Reply, StdError};
 
 use super::constants::{
-    MINT_NFT_REPLY_ID,
-    INSTANTIATE_REPLY_ID,
+    INSTANTIATE_REPLY_ID, MINT_NFT_REPLY_ID, REDEEM_BOND_REPLY_ID, REDELEGATE_REPLY_ID,
     UNBONDING_NFT_REPLY_ID,
-    REDELEGATE_REPLY_ID,
-    REDEEM_BOND_REPLY_ID,
 };
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
@@ -29,7 +24,9 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
 fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     // Unwrap the result, if it is an error, respond with the error
     if msg.result.is_err() {
-        let msg = "Error instantiating nft:".to_string().add(&msg.result.unwrap_err());
+        let msg = "Error instantiating nft: "
+            .to_string()
+            .add(&msg.result.unwrap_err());
         return Err(StdError::generic_err(msg));
     }
 
@@ -39,28 +36,17 @@ fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
         .into_result()
         .map_err(|op| StdError::generic_err(op))?;
 
-    let mut evt = String::new();
-    /* Find the event type _instantiate_contract which contains the contract_address*/
-    let event = result
-        .events
-        .iter()
-        .find(|event| {
-            evt.push_str(&String::from(" ").add(&event.ty.clone()));
-            return event.ty == "instantiate";
-        })
-        .ok_or_else(|| StdError::generic_err(evt))?;
+    /* Find the event type instantiate which contains the contract_address*/
+    let event = match result.events.iter().find(|event| event.ty == "instantiate") {
+        Some(event) => event,
+        None => return Err(StdError::generic_err("No instantiate event found")),
+    };
 
-    let mut evts = String::new();
-    /* Find the contract_address from _instantiate_contract event*/
-    let contract_address = &event
-        .attributes
-        .iter()
-        .find(|attr| {
-            evts.push_str(&String::from(" ").add(&attr.key.clone()));
-            return attr.key == "_contract_address";
-        })
-        .ok_or_else(|| StdError::generic_err(evts))?
-        .value;
+    /* Find the contract_address from instantiate event*/
+    let contract_address = match event.attributes.iter().find(|attr| attr.key == "_contract_address") {
+        Some(attr) => attr.value.clone(),
+        None => return Err(StdError::generic_err("No '_contract_address' attribute found")),
+    };
 
     /* Update the state of the contract adding the new generated nft_contract_addr */
     CFG.update(deps.storage, |mut cfg| -> StdResult<_> {
@@ -69,55 +55,61 @@ fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     })?;
 
     Ok(Response::new()
-        .add_attribute("method", "instantiate_nft_reply")
+        .add_attribute("action", "instantiate_nft_reply")
         .add_attribute("nft_contract_address", contract_address))
 }
 
 fn handle_mint_nft_reply_id(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     // Unwrap the result, if it is an error, respond with the error
     if msg.result.is_err() {
-        let msg = "Error minting nft:".to_string().add(&msg.result.unwrap_err());
+        let msg = "Error minting nft: "
+            .to_string()
+            .add(&msg.result.unwrap_err());
         return Err(StdError::generic_err(msg));
     }
 
-    // Update the state of the contract increasing the minted nfts by 1 
-    CFG.update(deps.storage, |mut cfg| -> StdResult<_> {
-        cfg.minted_nfts += 1;
-        Ok(cfg)
-    })?;
+    // Update the state of the contract increasing the minted nfts by 1
+    let mut cfg = CFG.load(deps.storage)?;
+    cfg.minted_nfts+=1;
+    CFG.save(deps.storage, &cfg)?;
 
-    Ok(Response::new())
+    Ok(Response::new()
+        .add_attribute("action", "mint_nft_reply")
+        .add_attribute("minted_nfts", cfg.minted_nfts.to_string()))
 }
 
 fn handle_unbonding_reply_id(msg: Reply) -> StdResult<Response> {
     // Unwrap the result, if it is an error, respond with the error
     if msg.result.is_err() {
-        let msg = "Error update nft:".to_string().add(&msg.result.unwrap_err());
+        let msg = "Error update nft: "
+            .to_string()
+            .add(&msg.result.unwrap_err());
         return Err(StdError::generic_err(msg));
     }
 
-    Ok(Response::new()
-        .add_attribute("method", "start_unbonding_reply"))
+    Ok(Response::new().add_attribute("method", "start_unbonding_reply"))
 }
 
 fn handle_redelegate_reply_id(msg: Reply) -> StdResult<Response> {
     // Unwrap the result, if it is an error, respond with the error
     if msg.result.is_err() {
-        let msg = "Error update nft:".to_string().add(&msg.result.unwrap_err());
+        let msg = "Error update nft:"
+            .to_string()
+            .add(&msg.result.unwrap_err());
         return Err(StdError::generic_err(msg));
     }
 
-    Ok(Response::new()
-        .add_attribute("method", "redelegate_reply"))
+    Ok(Response::new().add_attribute("method", "redelegate_reply"))
 }
 
 fn handle_redeem_bond(msg: Reply) -> StdResult<Response> {
     // Unwrap the result, if it is an error, respond with the error
     if msg.result.is_err() {
-        let msg = "Error update nft:".to_string().add(&msg.result.unwrap_err());
+        let msg = "Error update nft:"
+            .to_string()
+            .add(&msg.result.unwrap_err());
         return Err(StdError::generic_err(msg));
     }
 
-    Ok(Response::new()
-        .add_attribute("method", "redeem_bond_reply"))
+    Ok(Response::new().add_attribute("method", "redeem_bond_reply"))
 }

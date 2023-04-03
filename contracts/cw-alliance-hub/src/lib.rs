@@ -9,5 +9,5 @@ pub mod entry_points {
 pub mod msg;
 pub mod state;
 mod error;
-
+pub mod tests;
 pub use crate::error::ContractError;
