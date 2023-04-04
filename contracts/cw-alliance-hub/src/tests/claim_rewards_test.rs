@@ -8,7 +8,7 @@ use terra_proto_rs::{alliance::alliance::MsgClaimDelegationRewards, traits::Mess
 #[test]
 fn test_claim_rewards() {
     // GIVEN
-    let (mut deps, env, info) = chain_with_contract_delegation();
+    let (mut deps, env, info) = chain_with_contract_delegation(String::from("terra..."));
     let msg = ExecuteMsg::MsgClaimRewards {
         token_id: String::from("0"),
     };
@@ -42,7 +42,7 @@ fn test_claim_rewards() {
 #[test]
 fn test_claim_rewards_with_no_access() {
     // GIVEN
-    let (mut deps, env, _info) = chain_with_contract_delegation();
+    let (mut deps, env, _info) = chain_with_contract_delegation(String::from("terra..."));
     let info = mock_info("invalid_creator", &coins(100, "token"));
     let msg = ExecuteMsg::MsgClaimRewards {
         token_id: String::from("0"),
