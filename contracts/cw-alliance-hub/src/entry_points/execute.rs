@@ -359,7 +359,7 @@ fn generate_redelegate_msg(
                 && attr.timestamp < env.block.time)
                 || attr.display_type != DisplayType::Delegated.to_string()
             {
-                return Err(ContractError::UnbondingImpossible(token_id.clone()));
+                return Err(ContractError::RedelegatingImpossible(token_id.clone()));
             }
             let coin = attr.value.split(DEFAULT_DELIMITER).collect::<Vec<&str>>();
 
@@ -411,7 +411,7 @@ fn generate_redelegate_nft_msg(
                 && attr.timestamp < block_time)
                 || attr.display_type != DisplayType::Delegated.to_string()
             {
-                return Err(ContractError::UnbondingImpossible(token_id.clone()));
+                return Err(ContractError::RedelegatingImpossible(token_id.clone()));
             }
 
             Ok(CW721Trait {
@@ -553,9 +553,10 @@ fn generate_redeem_bond_nft_msg(
         .iter()
         .map(|attr| {
             if attr.display_type != DisplayType::Unbonding.to_string()
-                && attr.timestamp < block_time
+                || (attr.display_type == DisplayType::Unbonding.to_string()
+                    && attr.timestamp > block_time)
             {
-                return Err(ContractError::UnbondingImpossible(token_id.clone()));
+                return Err(ContractError::RedeeemBondImpossibel(token_id.clone()));
             }
 
             Ok(CW721Trait {

@@ -14,8 +14,8 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
     match msg.id {
         INSTANTIATE_REPLY_ID => handle_instantiate_reply(deps, msg),
         MINT_NFT_REPLY_ID => handle_mint_nft_reply_id(deps, msg),
-        UNBONDING_NFT_REPLY_ID => handle_unbonding_reply_id(msg),
         REDELEGATE_REPLY_ID => handle_redelegate_reply_id(msg),
+        UNBONDING_NFT_REPLY_ID => handle_unbonding_reply_id(msg),
         REDEEM_BOND_REPLY_ID => handle_redeem_bond(msg),
         id => Err(StdError::generic_err(format!("Unknown reply id: {}", id))),
     }

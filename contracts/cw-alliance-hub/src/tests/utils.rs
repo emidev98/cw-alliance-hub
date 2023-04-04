@@ -46,7 +46,9 @@ pub fn chain_with_contract() -> (
     (deps, env, info)
 }
 
-pub fn chain_with_contract_delegation() -> (
+pub fn chain_with_contract_delegation(
+    contract_adress: String,
+) -> (
     OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>,
     Env,
     MessageInfo,
@@ -63,7 +65,9 @@ pub fn chain_with_contract_delegation() -> (
         id: 1,
         result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
             data: None,
-            events: vec![Event::new("instantiate").add_attribute("_contract_address", "terra...")],
+            events: vec![
+                Event::new("instantiate").add_attribute("_contract_address", contract_adress)
+            ],
         }),
     };
     reply(deps.as_mut(), env.clone(), msg).unwrap();
@@ -130,32 +134,34 @@ fn mock_querier() -> MockQuerier {
 fn handle_wasm_query(wq: &WasmQuery) -> SystemResult<ContractResult<Binary>> {
     match wq {
         WasmQuery::Smart { contract_addr, .. } => {
-            if *contract_addr == "terra..." {
-                QuerierResult::Ok(ContractResult::Ok(
-                    to_binary(&AllNftInfoResponse::<CW721Metadata> {
-                        access: OwnerOfResponse {
-                            owner: String::from("creator"),
-                            approvals: vec![],
-                        },
-                        info: NftInfoResponse::<CW721Metadata> {
-                            extension: CW721Metadata {
-                                name: Some(String::from("Alliance NFT #0")),
-                                attributes: Some(vec![CW721Trait {
-                                    display_type: String::from("Delegated"),
-                                    trait_type: String::from("validator1"),
-                                    timestamp: Timestamp::from_seconds(100),
-                                    value: String::from("100@token"),
-                                }]),
-                                ..Default::default()
-                            },
-                            token_uri: None,
-                        },
-                    })
-                    .unwrap(),
-                ))
+            let display_type = if contract_addr == "terra..." {
+                String::from("Delegated")
             } else {
-                unimplemented!()
-            }
+                String::from("Unbonding")
+            };
+
+            QuerierResult::Ok(ContractResult::Ok(
+                to_binary(&AllNftInfoResponse::<CW721Metadata> {
+                    access: OwnerOfResponse {
+                        owner: String::from("creator"),
+                        approvals: vec![],
+                    },
+                    info: NftInfoResponse::<CW721Metadata> {
+                        extension: CW721Metadata {
+                            name: Some(String::from("Alliance NFT #0")),
+                            attributes: Some(vec![CW721Trait {
+                                display_type,
+                                trait_type: String::from("validator1"),
+                                timestamp: Timestamp::from_seconds(100),
+                                value: String::from("100@token"),
+                            }]),
+                            ..Default::default()
+                        },
+                        token_uri: None,
+                    },
+                })
+                .unwrap(),
+            ))
         }
         _ => unimplemented!(),
     }

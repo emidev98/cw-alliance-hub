@@ -12,8 +12,14 @@ pub enum ContractError {
     #[error("NFT '{0}' has no delegations")]
     NoDelegationsFound(String),
 
+    #[error("Cannot redeem bond for NFT '{0}'")]
+    RedeeemBondImpossibel(String),
+
     #[error("Cannot unbond the '{0}' NFT")]
     UnbondingImpossible(String),
+
+    #[error("Cannot redelegate the '{0}' NFT")]
+    RedelegatingImpossible(String),
 
     #[error("Something went wrong quering the validatos of the network")]
     NoValidatorsFound {},
