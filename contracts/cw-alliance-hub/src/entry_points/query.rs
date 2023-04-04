@@ -39,6 +39,6 @@ pub fn all_validators(querier: QuerierWrapper) -> Result<Vec<Validator>, Contrac
 
     match res {
         Ok(AllValidatorsResponse { validators }) => Ok(validators),
-        Err(err) => return Err(ContractError::Std(err)),
+        Err(err) => Err(ContractError::Std(err)),
     }
 }

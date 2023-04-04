@@ -54,10 +54,10 @@ pub fn execute(
 fn try_delegate(env: Env, info: MessageInfo, deps: DepsMut) -> Result<Response, ContractError> {
     let cfg = CFG.load(deps.storage)?;
     let validators = query::all_validators(deps.querier)?;
-    if validators.len() == 0 {
+    if validators.is_empty() {
         return Err(ContractError::NoValidatorsFound {});
     }
-    if info.funds.len() == 0 {
+    if info.funds.is_empty() {
         return Err(ContractError::NoFundsReceived {});
     }
 
@@ -89,7 +89,7 @@ fn try_delegate(env: Env, info: MessageInfo, deps: DepsMut) -> Result<Response, 
         .add_attribute("sender", info.sender.to_string())
         .add_submessage(SubMsg::reply_always(
             WasmMsg::Execute {
-                contract_addr: String::from(nft_contract_addr),
+                contract_addr: nft_contract_addr,
                 msg: to_binary(&msg_mint)?,
                 funds: vec![],
             },
@@ -124,7 +124,7 @@ fn generate_delegate_msg(
             // Remove 1 of the index to generate a new
             // pseudorandom index in the next iteration
             if vals_len > 1 {
-                vals_len = vals_len - 1
+                vals_len -= 1
             }
 
             Ok(msg_delegate)
@@ -156,7 +156,7 @@ fn generate_mint_msg(
                 display_type: DisplayType::Delegated.to_string(),
                 trait_type: msg.validator_address.to_string(),
                 timestamp: block_time,
-                value: value,
+                value,
             })
         })
         .collect::<Result<Vec<CW721Trait>, ContractError>>()?;
@@ -193,7 +193,7 @@ fn try_start_unbonding(
         None => return Err(ContractError::NoNftContractAddress {}),
     };
     let query_res = query::all_nft_info(deps.querier, token_id.clone(), nft_contract_addr.clone())?;
-    if query_res.access.owner != info.sender.to_string() {
+    if query_res.access.owner != info.sender {
         return Err(ContractError::UnauthorizedNFTOwnere(
             query_res.access.owner,
             info.sender.to_string(),
@@ -204,8 +204,8 @@ fn try_start_unbonding(
         .extension
         .attributes
         .clone()
-        .unwrap_or(vec![]);
-    if attrs.len() == 0 {
+        .unwrap_or_default();
+    if attrs.is_empty() {
         return Err(ContractError::NoDelegationsFound(token_id));
     }
 
@@ -259,7 +259,7 @@ fn generate_unbonding_nft_msg(
     let unbonding_timestamp = block_time.plus_seconds(unbonding_seconds);
     let attrs = match query_res.attributes {
         Some(attrs) => attrs,
-        None => return Err(ContractError::NoDelegationsFound(token_id.clone())),
+        None => return Err(ContractError::NoDelegationsFound(token_id)),
     };
 
     let parsed_attrs = attrs
@@ -299,7 +299,7 @@ fn try_redelegate(
 ) -> Result<Response, ContractError> {
     let cfg = CFG.load(deps.storage)?;
     let validators = query::all_validators(deps.querier)?;
-    if validators.len() == 0 {
+    if validators.is_empty() {
         return Err(ContractError::NoValidatorsFound {});
     }
     let nft_contract_addr = match cfg.nft_contract_addr {
@@ -307,7 +307,7 @@ fn try_redelegate(
         None => return Err(ContractError::NoNftContractAddress {}),
     };
     let query_res = query::all_nft_info(deps.querier, token_id.clone(), nft_contract_addr.clone())?;
-    if query_res.access.owner != info.sender.to_string() {
+    if query_res.access.owner != info.sender {
         return Err(ContractError::UnauthorizedNFTOwnere(
             query_res.access.owner,
             info.sender.to_string(),
@@ -318,9 +318,9 @@ fn try_redelegate(
         .extension
         .attributes
         .clone()
-        .unwrap_or(vec![]);
-    if attrs.len() == 0 {
-        return Err(ContractError::NoDelegationsFound(token_id.clone()));
+        .unwrap_or_default();
+    if attrs.is_empty() {
+        return Err(ContractError::NoDelegationsFound(token_id));
     }
     let msgs = generate_redelegate_msg(validators, attrs, env.clone(), token_id.clone())?;
     let msg_update_nft = generate_redelegate_nft_msg(
@@ -380,7 +380,7 @@ fn generate_redelegate_msg(
             // Remove 1 of the index to generate a new
             // pseudorandom index in the next iteration
             if vals_len > 1 {
-                vals_len = vals_len - 1
+                vals_len -= 1
             }
 
             Ok(CosmosMsg::Stargate {
@@ -402,7 +402,7 @@ fn generate_redelegate_nft_msg(
     let unbonding_timestamp = block_time.plus_seconds(unbonding_seconds);
     let attrs = match query_res.attributes {
         Some(attrs) => attrs,
-        None => return Err(ContractError::NoDelegationsFound(token_id.clone())),
+        None => return Err(ContractError::NoDelegationsFound(token_id)),
     };
     let parsed_attrs = attrs
         .iter()
@@ -444,15 +444,15 @@ fn try_claim_rewards(
         Some(addr) => String::from(addr),
         None => return Err(ContractError::NoNftContractAddress {}),
     };
-    let query_res = query::all_nft_info(deps.querier, token_id.clone(), nft_contract_addr.clone())?;
-    if query_res.access.owner != info.sender.to_string() {
+    let query_res = query::all_nft_info(deps.querier, token_id.clone(), nft_contract_addr)?;
+    if query_res.access.owner != info.sender {
         return Err(ContractError::UnauthorizedNFTOwnere(
             query_res.access.owner,
             info.sender.to_string(),
         ));
     }
-    let attrs = query_res.info.extension.attributes.unwrap_or(vec![]);
-    if attrs.len() == 0 {
+    let attrs = query_res.info.extension.attributes.unwrap_or_default();
+    if attrs.is_empty() {
         return Err(ContractError::NoDelegationsFound(token_id));
     }
 
@@ -492,7 +492,7 @@ fn try_redeem_bond(
         None => return Err(ContractError::NoNftContractAddress {}),
     };
     let query_res = query::all_nft_info(deps.querier, token_id.clone(), nft_contract_addr.clone())?;
-    if query_res.access.owner != info.sender.to_string() {
+    if query_res.access.owner != info.sender {
         return Err(ContractError::UnauthorizedNFTOwnere(
             query_res.access.owner,
             info.sender.to_string(),
@@ -503,8 +503,8 @@ fn try_redeem_bond(
         .extension
         .attributes
         .clone()
-        .unwrap_or(vec![]);
-    if attrs.len() == 0 {
+        .unwrap_or_default();
+    if attrs.is_empty() {
         return Err(ContractError::NoDelegationsFound(token_id));
     }
 

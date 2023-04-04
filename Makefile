@@ -53,6 +53,17 @@ test-coverage:
 
 .PHONY: test test-coverage
 
+############
+## Schema ##
+############
+
+schema: 
+	cd contracts/cw721-progressive-metadata && cargo schema &&\
+	cd ../.. &&\
+	cd contracts/cw-alliance-hub && cargo schema
+
+.PHONY: schema
+
 ################################
 ## Native Alliance executions ##
 ################################

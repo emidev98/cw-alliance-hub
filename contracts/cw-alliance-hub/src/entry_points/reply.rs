@@ -31,10 +31,7 @@ fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     }
 
     // Unwrap the resoults of the instantiate submessage
-    let result = msg
-        .result
-        .into_result()
-        .map_err(|op| StdError::generic_err(op))?;
+    let result = msg.result.into_result().map_err(StdError::generic_err)?;
 
     /* Find the event type instantiate which contains the contract_address*/
     let event = match result.events.iter().find(|event| event.ty == "instantiate") {

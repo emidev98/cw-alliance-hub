@@ -22,7 +22,7 @@ impl Cfg {
         Cfg {
             minted_nfts: 0,
             nft_contract_addr: None,
-            unbonding_seconds: unbonding_seconds,
+            unbonding_seconds,
         }
     }
 }
@@ -63,9 +63,9 @@ impl fmt::Display for DisplayType {
     }
 }
 
-impl Into<DisplayType> for String {
-    fn into(self) -> DisplayType {
-        match self.as_str() {
+impl From<String> for DisplayType {
+    fn from(s: String) -> DisplayType {
+        match s.as_str() {
             "Delegated" => DisplayType::Delegated,
             "Unbonding" => DisplayType::Unbonding,
             "Redelegating" => DisplayType::Redelegating,
