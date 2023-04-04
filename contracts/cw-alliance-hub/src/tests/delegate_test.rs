@@ -37,7 +37,7 @@ fn test_delegate() {
                     name: Some(String::from("Alliance NFT #0")),
                     attributes: Some(vec![CW721Trait {
                         display_type: String::from("Delegated"),
-                        trait_type: String::from("validator1"),
+                        trait_type: String::from("validator"),
                         timestamp: env.block.time,
                         value: String::from("100@token"),
                     }]),
@@ -56,7 +56,7 @@ fn test_delegate() {
         value: Binary::from(
             MsgDelegate {
                 delegator_address: String::from("cosmos2contract"),
-                validator_address: String::from("validator1"),
+                validator_address: String::from("validator"),
                 amount: Some(CosmosNativeCoin {
                     denom: String::from("token"),
                     amount: String::from("100"),
@@ -115,13 +115,13 @@ fn test_delegate_multiple_tokens() {
                     name: Some(String::from("Alliance NFT #0")),
                     attributes: Some(vec![CW721Trait {
                         display_type: String::from("Delegated"),
-                        trait_type: String::from("validator1"),
+                        trait_type: String::from("validator"),
                         timestamp: env.block.time,
                         value: String::from("100@token"),
                     },
                     CW721Trait {
                         display_type: String::from("Delegated"),
-                        trait_type: String::from("validator"),
+                        trait_type: String::from("validator1"),
                         timestamp: env.block.time,
                         value: String::from("100@stoken"),
                     }]),
@@ -140,7 +140,7 @@ fn test_delegate_multiple_tokens() {
         value: Binary::from(
             MsgDelegate {
                 delegator_address: String::from("cosmos2contract"),
-                validator_address: String::from("validator1"),
+                validator_address: String::from("validator"),
                 amount: Some(CosmosNativeCoin {
                     denom: String::from("token"),
                     amount: String::from("100"),
@@ -156,7 +156,7 @@ fn test_delegate_multiple_tokens() {
         value: Binary::from(
             MsgDelegate {
                 delegator_address: String::from("cosmos2contract"),
-                validator_address: String::from("validator"),
+                validator_address: String::from("validator1"),
                 amount: Some(CosmosNativeCoin {
                     denom: String::from("stoken"),
                     amount: String::from("100"),
@@ -214,7 +214,7 @@ fn test_delegate_reply_error() {
                     name: Some(String::from("Alliance NFT #0")),
                     attributes: Some(vec![CW721Trait {
                         display_type: String::from("Delegated"),
-                        trait_type: String::from("validator1"),
+                        trait_type: String::from("validator"),
                         timestamp: env.block.time,
                         value: String::from("100@token"),
                     }]),
@@ -233,7 +233,7 @@ fn test_delegate_reply_error() {
         value: Binary::from(
             MsgDelegate {
                 delegator_address: String::from("cosmos2contract"),
-                validator_address: String::from("validator1"),
+                validator_address: String::from("validator"),
                 amount: Some(CosmosNativeCoin {
                     denom: String::from("token"),
                     amount: String::from("100"),

@@ -1,16 +1,10 @@
 use crate::{entry_points::{
-    execute::{execute, Cw721ExecuteMsg},
-    reply::reply,
+    execute::execute,
 }, ContractError, tests::utils::chain_with_contract_delegation};
 use crate::msg::ExecuteMsg;
-use crate::tests::utils::chain_with_contract;
-use cosmwasm_std::{testing::mock_info, Reply, SubMsgResponse, StdError, Response, Coin, to_binary, Attribute, Binary, CosmosMsg, SubMsg, WasmMsg, coins};
-use cw721_progressive_metadata::{
-    state::{Metadata as CW721Metadata, Trait as CW721Trait},
-};
+use cosmwasm_std::{testing::mock_info, Attribute, Binary, CosmosMsg, SubMsg, coins};
 use terra_proto_rs::{
-    alliance::alliance::{MsgDelegate, MsgClaimDelegationRewards},
-    cosmos::base::v1beta1::Coin as CosmosNativeCoin,
+    alliance::alliance::MsgClaimDelegationRewards,
     traits::Message,
 };
 
