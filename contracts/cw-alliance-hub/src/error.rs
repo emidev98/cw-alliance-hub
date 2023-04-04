@@ -18,6 +18,12 @@ pub enum ContractError {
     #[error("Something went wrong quering the validatos of the network")]
     NoValidatorsFound{},
 
+    #[error("Nft contract adddress not setup in the hub contract config")]
+    NoNftContractAddress{},
+
+    #[error("Serialization errors")]
+    Serialize{},
+
     #[error("Something went wrong minting the NFT")]
     NFTMintError {},
 

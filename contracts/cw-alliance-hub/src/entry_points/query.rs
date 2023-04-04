@@ -1,4 +1,4 @@
-use crate::msg::QueryMsg;
+use crate::{msg::QueryMsg, ContractError};
 use crate::state::CFG;
 use cosmwasm_std::{QuerierWrapper, WasmQuery, StakingQuery, Validator};
 #[cfg(not(feature = "library"))]
@@ -22,26 +22,26 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     })
 }
 
-pub fn all_nft_info(querier: QuerierWrapper, token_id: String, contract_addr: String) -> AllNftInfoResponse<CW721Metadata> {
+pub fn all_nft_info(querier: QuerierWrapper, token_id: String, contract_addr: String) -> Result<AllNftInfoResponse<CW721Metadata>, ContractError> {
     let msg = to_binary(&CW721Query::AllNftInfo {
         token_id,
         include_expired: None,
-    }).unwrap();
+    })?;
     
     let res: AllNftInfoResponse<CW721Metadata> = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr,
         msg
-    })).unwrap();
+    }))?;
 
-    res
+    Ok(res)
 }
 
-pub fn all_validators(querier: QuerierWrapper) -> Vec<Validator> {
+pub fn all_validators(querier: QuerierWrapper) -> Result<Vec<Validator>, ContractError> {
     let res = querier   
         .query(&QueryRequest::Staking(StakingQuery::AllValidators {}));
 
     match res {
-        Ok(AllValidatorsResponse { validators }) => validators,
-        Err(_) => vec![],
+        Ok(AllValidatorsResponse { validators }) => Ok(validators),
+        Err(err) => return Err(ContractError::Std(err)),
     }
 }
