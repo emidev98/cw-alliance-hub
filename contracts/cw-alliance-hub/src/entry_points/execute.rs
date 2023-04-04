@@ -9,7 +9,7 @@ use cosmwasm_std::{
     entry_point, to_binary, Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, SubMsg,
     Validator, WasmMsg,
 };
-use cosmwasm_std::{BankMsg, Empty, Timestamp, Uint128, StdError};
+use cosmwasm_std::{BankMsg, Empty, Timestamp, Uint128};
 use terra_proto_rs::alliance::alliance::MsgRedelegate;
 
 use super::{
@@ -75,7 +75,7 @@ fn try_delegate(env: Env, info: MessageInfo, deps: DepsMut) -> Result<Response, 
         msg_delegate.clone(),
     );
 
-    let delegate_msgs: Vec<CosmosMsg> = msg_delegate
+    let msg: Vec<CosmosMsg> = msg_delegate
         .iter()
         .map(|msg| CosmosMsg::Stargate {
             type_url: "/alliance.alliance.MsgDelegate".to_string(),
@@ -94,7 +94,7 @@ fn try_delegate(env: Env, info: MessageInfo, deps: DepsMut) -> Result<Response, 
             },
             MINT_NFT_REPLY_ID,
         ))
-        .add_messages(delegate_msgs))
+        .add_messages(msg))
 }
 
 fn generate_delegate_msg(
@@ -235,7 +235,6 @@ fn try_start_unbonding(
     Ok(Response::new()
         .add_attribute("action", "start_unbonding")
         .add_attribute("sender", info.sender.to_string())
-        .add_messages(msgs)
         .add_submessage(SubMsg::reply_always(
             WasmMsg::Execute {
                 contract_addr: cfg.nft_contract_addr.unwrap().to_string(),
@@ -243,7 +242,8 @@ fn try_start_unbonding(
                 funds: vec![],
             },
             UNBONDING_NFT_REPLY_ID,
-        )))
+        ))
+        .add_messages(msgs))
 }
 
 fn generate_unbonding_nft_msg(
@@ -322,7 +322,6 @@ fn try_redelegate(
     Ok(Response::new()
         .add_attribute("action", "redelegate")
         .add_attribute("sender", info.sender.to_string())
-        .add_messages(msgs)
         .add_submessage(SubMsg::reply_always(
             WasmMsg::Execute {
                 contract_addr: cfg.nft_contract_addr.unwrap().to_string(),
@@ -330,7 +329,8 @@ fn try_redelegate(
                 funds: vec![],
             },
             REDELEGATE_REPLY_ID,
-        )))
+        ))
+        .add_messages(msgs))
 }
 
 fn generate_redelegate_msg(validators: Vec<Validator>, attrs: Vec<CW721Trait>, env: Env, token_id: String) -> Vec<CosmosMsg> {
@@ -507,7 +507,6 @@ fn try_redeem_bond(
     Ok(Response::new()
         .add_attribute("action", "redeem_bond")
         .add_attribute("sender", info.sender.to_string())
-        .add_messages(msgs)
         .add_submessage(SubMsg::reply_always(
             WasmMsg::Execute {
                 contract_addr: cfg.nft_contract_addr.unwrap().to_string(),
@@ -515,7 +514,8 @@ fn try_redeem_bond(
                 funds: vec![],
             },
             REDEEM_BOND_REPLY_ID,
-        )))
+        ))
+        .add_messages(msgs))
 }
 
 fn generate_redeem_bond_nft_msg(
