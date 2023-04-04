@@ -4,7 +4,6 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 
-
 // Contain the list of nfts minted by the contract
 // Where the key is the address of the nft and the
 // boolean value represents if the user has executed
@@ -23,11 +22,10 @@ impl Cfg {
         Cfg {
             minted_nfts: 0,
             nft_contract_addr: None,
-            unbonding_seconds: unbonding_seconds,
+            unbonding_seconds,
         }
     }
 }
-
 
 #[cw_serde]
 pub enum DisplayType {
@@ -56,18 +54,18 @@ impl FromStr for DisplayType {
 impl fmt::Display for DisplayType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DisplayType::Delegated => write!(f,"Delegated"),
-            DisplayType::Unbonding => write!(f,"Unbonding"),
-            DisplayType::Redelegating => write!(f,"Redelegating"),
-            DisplayType::Unbonded => write!(f,"Unbonded"),
-            DisplayType::Unknown => write!(f,"Unknown"),
+            DisplayType::Delegated => write!(f, "Delegated"),
+            DisplayType::Unbonding => write!(f, "Unbonding"),
+            DisplayType::Redelegating => write!(f, "Redelegating"),
+            DisplayType::Unbonded => write!(f, "Unbonded"),
+            DisplayType::Unknown => write!(f, "Unknown"),
         }
     }
 }
 
-impl Into<DisplayType> for String {
-    fn into(self) -> DisplayType {
-        match self.as_str() {
+impl From<String> for DisplayType {
+    fn from(s: String) -> DisplayType {
+        match s.as_str() {
             "Delegated" => DisplayType::Delegated,
             "Unbonding" => DisplayType::Unbonding,
             "Redelegating" => DisplayType::Redelegating,

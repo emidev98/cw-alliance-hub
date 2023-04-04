@@ -14,7 +14,6 @@ fn cw721_progressive_metadata_contract() -> Box<dyn Contract<Empty>> {
     Box::new(contract)
 }
 
-
 fn query_owner(querier: QuerierWrapper, cw721: &Addr, token_id: String) -> Addr {
     let resp: OwnerOfResponse = querier
         .query_wasm_smart(
@@ -27,7 +26,6 @@ fn query_owner(querier: QuerierWrapper, cw721: &Addr, token_id: String) -> Addr 
         .unwrap();
     Addr::unchecked(resp.owner)
 }
-
 
 // Test update extension by the collection owner only
 #[test]
@@ -57,7 +55,7 @@ fn test_update_extension() {
         cw721.clone(),
         &crate::ExecuteMsg::<Empty, Empty>::Mint {
             token_id: token_id.clone(),
-            owner:  colletion_owner().to_string(),
+            owner: colletion_owner().to_string(),
             token_uri: None,
             extension: Empty::default(),
         },
@@ -89,5 +87,4 @@ fn test_update_extension() {
         &[],
     );
     assert!(res_err.is_err());
-
 }

@@ -1,7 +1,7 @@
 use cosmwasm_std::StdError;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum ContractError {
     #[error("{0}")]
     Std(#[from] StdError),
@@ -16,7 +16,13 @@ pub enum ContractError {
     UnbondingImpossible(String),
 
     #[error("Something went wrong quering the validatos of the network")]
-    NoValidatorsFound{},
+    NoValidatorsFound {},
+
+    #[error("Nft contract adddress not setup in the hub contract config")]
+    NoNftContractAddress {},
+
+    #[error("Serialization errors")]
+    Serialize {},
 
     #[error("Something went wrong minting the NFT")]
     NFTMintError {},
@@ -24,6 +30,6 @@ pub enum ContractError {
     #[error("Something went wrong trying to instantiate the NFT")]
     NFTContractInstantiateError {},
 
-    #[error("Something went wrong trying to pick a validator from range")]
-    InvalidValidator {},
+    #[error("Funds were not received")]
+    NoFundsReceived {},
 }

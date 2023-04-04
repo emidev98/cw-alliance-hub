@@ -69,9 +69,12 @@ pub enum ExecuteMsg<Extension, E> {
 
     /// Extension msg
     Extension { msg: E },
-    
+
     /// Extension msg
-    UpdateExtension { token_id: String, extension: Extension },
+    UpdateExtension {
+        token_id: String,
+        extension: Extension,
+    },
 }
 
 #[cw_ownable_query]
