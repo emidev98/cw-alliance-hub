@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "cw721_code_id",
+    "cw721_collection",
+    "cw721_unbonding_seconds"
+  ],
+  "properties": {
+    "cw721_code_id": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "cw721_collection": {
+      "$ref": "#/definitions/CW721Collection"
+    },
+    "cw721_unbonding_seconds": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "CW721Collection": {
+      "type": "object",
+      "required": [
+        "name",
+        "symbol"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the NFT contract",
+          "type": "string"
+        },
+        "symbol": {
+          "description": "Symbol of the NFT contract",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
