@@ -43,9 +43,17 @@ fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> StdResult<Response> {
     };
 
     /* Find the contract_address from instantiate event*/
-    let contract_address = match event.attributes.iter().find(|attr| attr.key == "_contract_address") {
+    let contract_address = match event
+        .attributes
+        .iter()
+        .find(|attr| attr.key == "_contract_address")
+    {
         Some(attr) => attr.value.clone(),
-        None => return Err(StdError::generic_err("No '_contract_address' attribute found")),
+        None => {
+            return Err(StdError::generic_err(
+                "No '_contract_address' attribute found",
+            ))
+        }
     };
 
     /* Update the state of the contract adding the new generated nft_contract_addr */
@@ -70,7 +78,7 @@ fn handle_mint_nft_reply_id(deps: DepsMut, msg: Reply) -> StdResult<Response> {
 
     // Update the state of the contract increasing the minted nfts by 1
     let mut cfg = CFG.load(deps.storage)?;
-    cfg.minted_nfts+=1;
+    cfg.minted_nfts += 1;
     CFG.save(deps.storage, &cfg)?;
 
     Ok(Response::new()

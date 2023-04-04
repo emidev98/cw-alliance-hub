@@ -1,17 +1,13 @@
-use crate::{msg::QueryMsg, ContractError};
 use crate::state::CFG;
-use cosmwasm_std::{QuerierWrapper, WasmQuery, StakingQuery, Validator};
+use crate::{msg::QueryMsg, ContractError};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, Env, StdResult, QueryRequest,
-    AllValidatorsResponse
+    entry_point, to_binary, AllValidatorsResponse, Binary, Deps, Env, QueryRequest, StdResult,
 };
+use cosmwasm_std::{QuerierWrapper, StakingQuery, Validator, WasmQuery};
 use cw721::AllNftInfoResponse;
 
-use cw721_progressive_metadata::{
-    state::Metadata as CW721Metadata,
-    QueryMsg as CW721QueryEmpty
-};
+use cw721_progressive_metadata::{state::Metadata as CW721Metadata, QueryMsg as CW721QueryEmpty};
 
 type CW721Query = CW721QueryEmpty<CW721Metadata>;
 
@@ -22,23 +18,24 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     })
 }
 
-pub fn all_nft_info(querier: QuerierWrapper, token_id: String, contract_addr: String) -> Result<AllNftInfoResponse<CW721Metadata>, ContractError> {
+pub fn all_nft_info(
+    querier: QuerierWrapper,
+    token_id: String,
+    contract_addr: String,
+) -> Result<AllNftInfoResponse<CW721Metadata>, ContractError> {
     let msg = to_binary(&CW721Query::AllNftInfo {
         token_id,
         include_expired: None,
     })?;
-    
-    let res: AllNftInfoResponse<CW721Metadata> = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr,
-        msg
-    }))?;
+
+    let res: AllNftInfoResponse<CW721Metadata> =
+        querier.query(&QueryRequest::Wasm(WasmQuery::Smart { contract_addr, msg }))?;
 
     Ok(res)
 }
 
 pub fn all_validators(querier: QuerierWrapper) -> Result<Vec<Validator>, ContractError> {
-    let res = querier   
-        .query(&QueryRequest::Staking(StakingQuery::AllValidators {}));
+    let res = querier.query(&QueryRequest::Staking(StakingQuery::AllValidators {}));
 
     match res {
         Ok(AllValidatorsResponse { validators }) => Ok(validators),

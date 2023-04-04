@@ -75,7 +75,10 @@ where
             ExecuteMsg::Burn { token_id } => self.burn(deps, env, info, token_id),
             ExecuteMsg::UpdateOwnership(action) => Self::update_ownership(deps, env, info, action),
             ExecuteMsg::Extension { msg: _ } => Ok(Response::default()),
-            ExecuteMsg::UpdateExtension { token_id, extension } => self.update_extension(deps, info, token_id, extension),
+            ExecuteMsg::UpdateExtension {
+                token_id,
+                extension,
+            } => self.update_extension(deps, info, token_id, extension),
         }
     }
 }
@@ -142,11 +145,12 @@ where
 
         let mut token = self.tokens.load(deps.storage, &token_id)?;
         token.extension = extension;
-        self.tokens.update(deps.storage, &token_id, |old| match old {
-            Some(_) => Ok(token),
-            None => Err(ContractError::TokenIdNotFound {}),
-        })?;
-        
+        self.tokens
+            .update(deps.storage, &token_id, |old| match old {
+                Some(_) => Ok(token),
+                None => Err(ContractError::TokenIdNotFound {}),
+            })?;
+
         Ok(Response::new()
             .add_attribute("action", "update_extension")
             .add_attribute("owner", info.sender)
@@ -159,10 +163,9 @@ where
         let ContractVersion { version, .. } = get_contract_version(deps.storage)?;
         set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
-        Ok(Response::new().add_attribute("action", "migrate").add_attribute(
-            "migrated_from_version",
-            version.to_string(),
-        ))
+        Ok(Response::new()
+            .add_attribute("action", "migrate")
+            .add_attribute("migrated_from_version", version))
     }
 }
 

@@ -4,7 +4,6 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 
-
 // Contain the list of nfts minted by the contract
 // Where the key is the address of the nft and the
 // boolean value represents if the user has executed
@@ -27,7 +26,6 @@ impl Cfg {
         }
     }
 }
-
 
 #[cw_serde]
 pub enum DisplayType {
@@ -56,11 +54,11 @@ impl FromStr for DisplayType {
 impl fmt::Display for DisplayType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DisplayType::Delegated => write!(f,"Delegated"),
-            DisplayType::Unbonding => write!(f,"Unbonding"),
-            DisplayType::Redelegating => write!(f,"Redelegating"),
-            DisplayType::Unbonded => write!(f,"Unbonded"),
-            DisplayType::Unknown => write!(f,"Unknown"),
+            DisplayType::Delegated => write!(f, "Delegated"),
+            DisplayType::Unbonding => write!(f, "Unbonding"),
+            DisplayType::Redelegating => write!(f, "Redelegating"),
+            DisplayType::Unbonded => write!(f, "Unbonded"),
+            DisplayType::Unknown => write!(f, "Unknown"),
         }
     }
 }

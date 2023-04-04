@@ -40,6 +40,19 @@ optimize-workspace:
 
 .PHONY: init build-migrate delegate smart-contract-flow optimize-workspace
 
+
+##########
+## Test ##
+##########
+
+test: 
+	cargo test
+
+test-coverage:
+	docker run --security-opt seccomp=unconfined -v "$(shell pwd):/volume" xd009642/tarpaulin
+
+.PHONY: test test-coverage
+
 ################################
 ## Native Alliance executions ##
 ################################

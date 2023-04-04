@@ -16,13 +16,13 @@ pub enum ContractError {
     UnbondingImpossible(String),
 
     #[error("Something went wrong quering the validatos of the network")]
-    NoValidatorsFound{},
+    NoValidatorsFound {},
 
     #[error("Nft contract adddress not setup in the hub contract config")]
-    NoNftContractAddress{},
+    NoNftContractAddress {},
 
     #[error("Serialization errors")]
-    Serialize{},
+    Serialize {},
 
     #[error("Something went wrong minting the NFT")]
     NFTMintError {},
@@ -31,5 +31,5 @@ pub enum ContractError {
     NFTContractInstantiateError {},
 
     #[error("Funds were not received")]
-    NoFundsReceived{},
+    NoFundsReceived {},
 }

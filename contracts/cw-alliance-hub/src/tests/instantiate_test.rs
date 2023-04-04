@@ -1,19 +1,17 @@
 use crate::entry_points::instantiate::instantiate;
 use crate::entry_points::reply::reply;
 use crate::state::CFG;
-use crate::tests::utils::{inst_msg, default_chain};
-use cosmwasm_std::{from_binary, CosmosMsg, WasmMsg, Reply, Event, SubMsgResponse, Addr, StdError};
+use crate::tests::utils::{default_chain, inst_msg};
+use cosmwasm_std::{from_binary, Addr, CosmosMsg, Event, Reply, StdError, SubMsgResponse, WasmMsg};
 use cw2::{get_contract_version, ContractVersion};
-use cw721_progressive_metadata::{
-    InstantiateMsg as Cw721InstantiateMsg,
-};
+use cw721_progressive_metadata::InstantiateMsg as Cw721InstantiateMsg;
 
 #[test]
 fn test_instantiate() {
-    // GIVEN 
+    // GIVEN
     let (mut deps, env, info) = default_chain();
 
-    // WHEN 
+    // WHEN
     let res = instantiate(deps.as_mut(), env.clone(), info.clone(), inst_msg()).unwrap();
 
     // THEN
@@ -52,29 +50,29 @@ fn test_instantiate() {
     assert_eq!(cfg.minted_nfts, 0);
     assert_eq!(cfg.nft_contract_addr, None);
 
-    assert_eq!(get_contract_version(deps.as_ref().storage).unwrap(), 
+    assert_eq!(
+        get_contract_version(deps.as_ref().storage).unwrap(),
         ContractVersion {
             contract: String::from("crates.io:cw-alliance-hub"),
             version: String::from("0.1.0")
         }
-);
+    );
 }
 
 #[test]
 fn test_instantiate_reply() {
-    // GIVEN 
+    // GIVEN
     let (mut deps, env, info) = default_chain();
     instantiate(deps.as_mut(), env.clone(), info.clone(), inst_msg()).unwrap();
     let reply_msg = Reply {
-        id : 1,
+        id: 1,
         result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
             data: None,
-            events: vec![
-                Event::new("instantiate").add_attribute("_contract_address", "terra...") ],
-        })
+            events: vec![Event::new("instantiate").add_attribute("_contract_address", "terra...")],
+        }),
     };
 
-    // WHEN 
+    // WHEN
     let res = reply(deps.as_mut(), env.clone(), reply_msg).unwrap();
 
     // THEN
@@ -91,59 +89,68 @@ fn test_instantiate_reply() {
 
 #[test]
 fn test_instantiate_reply_fail() {
-    // GIVEN 
+    // GIVEN
     let (mut deps, env, info) = default_chain();
     instantiate(deps.as_mut(), env.clone(), info.clone(), inst_msg()).unwrap();
     let msg = Reply {
-        id : 1,
-        result: cosmwasm_std::SubMsgResult::Err(String::from("Something went wrong"))
+        id: 1,
+        result: cosmwasm_std::SubMsgResult::Err(String::from("Something went wrong")),
     };
 
-    // WHEN 
+    // WHEN
     let res = reply(deps.as_mut(), env.clone(), msg).unwrap_err();
 
     // THEN
-    assert_eq!(res, StdError::generic_err(String::from("Error instantiating nft: Something went wrong")));
+    assert_eq!(
+        res,
+        StdError::generic_err(String::from(
+            "Error instantiating nft: Something went wrong"
+        ))
+    );
 }
 
 #[test]
 fn test_instantiate_reply_without_instantiate_event() {
-    // GIVEN 
+    // GIVEN
     let (mut deps, env, info) = default_chain();
     instantiate(deps.as_mut(), env.clone(), info.clone(), inst_msg()).unwrap();
     let msg = Reply {
-        id : 1,
+        id: 1,
         result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
             data: None,
             events: vec![],
-        })
+        }),
     };
 
-    // WHEN 
+    // WHEN
     let res = reply(deps.as_mut(), env.clone(), msg).unwrap_err();
 
     // THEN
-    assert_eq!(res, StdError::generic_err(String::from("No instantiate event found")));
+    assert_eq!(
+        res,
+        StdError::generic_err(String::from("No instantiate event found"))
+    );
 }
 
 #[test]
 fn test_instantiate_reply_without_contract_addr_attribute() {
-    // GIVEN 
+    // GIVEN
     let (mut deps, env, info) = default_chain();
     instantiate(deps.as_mut(), env.clone(), info.clone(), inst_msg()).unwrap();
     let msg = Reply {
-        id : 1,
+        id: 1,
         result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
             data: None,
-            events: vec![
-                Event::new("instantiate")
-            ],
-        })
+            events: vec![Event::new("instantiate")],
+        }),
     };
 
-    // WHEN 
+    // WHEN
     let res = reply(deps.as_mut(), env.clone(), msg).unwrap_err();
 
     // THEN
-    assert_eq!(res, StdError::generic_err(String::from("No '_contract_address' attribute found")));
+    assert_eq!(
+        res,
+        StdError::generic_err(String::from("No '_contract_address' attribute found"))
+    );
 }

@@ -4,12 +4,12 @@ use std::str::FromStr;
 use crate::error::ContractError;
 use crate::msg::ExecuteMsg;
 use crate::state::{DisplayType, CFG};
-use cosmwasm_std::{BankMsg, Empty, Timestamp, Uint128};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, SubMsg,
     Validator, WasmMsg,
 };
+use cosmwasm_std::{BankMsg, Empty, Timestamp, Uint128};
 use terra_proto_rs::alliance::alliance::MsgRedelegate;
 
 use super::{

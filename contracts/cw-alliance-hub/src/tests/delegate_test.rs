@@ -1,16 +1,19 @@
-use crate::{entry_points::{
-    execute::{execute, Cw721ExecuteMsg},
-    reply::reply,
-}, ContractError};
 use crate::msg::ExecuteMsg;
 use crate::tests::utils::chain_with_contract;
-use cosmwasm_std::{testing::mock_info, Reply, SubMsgResponse, StdError, Response, Coin, to_binary, Attribute, Binary, CosmosMsg, SubMsg, WasmMsg};
-use cw721_progressive_metadata::{
-    state::{Metadata as CW721Metadata, Trait as CW721Trait},
+use crate::{
+    entry_points::{
+        execute::{execute, Cw721ExecuteMsg},
+        reply::reply,
+    },
+    ContractError,
 };
+use cosmwasm_std::{
+    testing::mock_info, to_binary, Attribute, Binary, Coin, CosmosMsg, Reply, Response, StdError,
+    SubMsg, SubMsgResponse, WasmMsg,
+};
+use cw721_progressive_metadata::state::{Metadata as CW721Metadata, Trait as CW721Trait};
 use terra_proto_rs::{
-    alliance::alliance::MsgDelegate,
-    cosmos::base::v1beta1::Coin as CosmosNativeCoin,
+    alliance::alliance::MsgDelegate, cosmos::base::v1beta1::Coin as CosmosNativeCoin,
     traits::Message,
 };
 
@@ -74,17 +77,18 @@ fn test_delegate() {
         ],
         res.attributes
     );
-    
+
     // REPLY
     let reply_msg = Reply {
-        id : 2,
+        id: 2,
         result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
             events: vec![],
             data: None,
-        })
+        }),
     };
     let reply_res = reply(deps.as_mut(), env, reply_msg).unwrap();
-    assert_eq!(reply_res, 
+    assert_eq!(
+        reply_res,
         Response::new()
             .add_attribute("action", "mint_nft_reply")
             .add_attribute("minted_nfts", "1")
@@ -95,7 +99,10 @@ fn test_delegate() {
 fn test_delegate_multiple_tokens() {
     // GIVEN
     let (mut deps, env, _) = chain_with_contract();
-    let info = mock_info("creator", &vec![Coin::new(100,"token"),Coin::new(100,"stoken")]);
+    let info = mock_info(
+        "creator",
+        &vec![Coin::new(100, "token"), Coin::new(100, "stoken")],
+    );
     let msg = ExecuteMsg::MsgDelegate {};
 
     // WHEN
@@ -113,18 +120,20 @@ fn test_delegate_multiple_tokens() {
                 token_uri: None,
                 extension: Some(CW721Metadata {
                     name: Some(String::from("Alliance NFT #0")),
-                    attributes: Some(vec![CW721Trait {
-                        display_type: String::from("Delegated"),
-                        trait_type: String::from("validator"),
-                        timestamp: env.block.time,
-                        value: String::from("100@token"),
-                    },
-                    CW721Trait {
-                        display_type: String::from("Delegated"),
-                        trait_type: String::from("validator1"),
-                        timestamp: env.block.time,
-                        value: String::from("100@stoken"),
-                    }]),
+                    attributes: Some(vec![
+                        CW721Trait {
+                            display_type: String::from("Delegated"),
+                            trait_type: String::from("validator"),
+                            timestamp: env.block.time,
+                            value: String::from("100@token"),
+                        },
+                        CW721Trait {
+                            display_type: String::from("Delegated"),
+                            trait_type: String::from("validator1"),
+                            timestamp: env.block.time,
+                            value: String::from("100@stoken"),
+                        },
+                    ]),
                     ..Default::default()
                 }),
             })
@@ -174,17 +183,18 @@ fn test_delegate_multiple_tokens() {
         ],
         res.attributes
     );
-    
+
     // REPLY
     let reply_msg = Reply {
-        id : 2,
+        id: 2,
         result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
             events: vec![],
             data: None,
-        })
+        }),
     };
     let reply_res = reply(deps.as_mut(), env, reply_msg).unwrap();
-    assert_eq!(reply_res, 
+    assert_eq!(
+        reply_res,
         Response::new()
             .add_attribute("action", "mint_nft_reply")
             .add_attribute("minted_nfts", "1")
@@ -251,14 +261,17 @@ fn test_delegate_reply_error() {
         ],
         res.attributes
     );
-    
+
     // REPLY
     let reply_msg = Reply {
-        id : 2,
+        id: 2,
         result: cosmwasm_std::SubMsgResult::Err(String::from("Something went wrong")),
     };
     let reply_res = reply(deps.as_mut(), env, reply_msg).unwrap_err();
-    assert_eq!(reply_res, StdError::generic_err(String::from("Error minting nft: Something went wrong")));
+    assert_eq!(
+        reply_res,
+        StdError::generic_err(String::from("Error minting nft: Something went wrong"))
+    );
 }
 
 #[test]
@@ -266,7 +279,7 @@ fn test_delegate_no_funds() {
     // GIVEN
     let (mut deps, env, _info) = chain_with_contract();
     let info = mock_info("creator", &vec![]);
-    let info2 = mock_info("creator", &vec![Coin::new(0,"token")]);
+    let info2 = mock_info("creator", &vec![Coin::new(0, "token")]);
 
     let msg = ExecuteMsg::MsgDelegate {};
 
@@ -275,6 +288,6 @@ fn test_delegate_no_funds() {
     let res2 = execute(deps.as_mut(), env, info2, msg).unwrap_err();
 
     // THEN
-    assert_eq!(res, ContractError::NoFundsReceived {  });
-    assert_eq!(res2, ContractError::NoFundsReceived {  });
+    assert_eq!(res, ContractError::NoFundsReceived {});
+    assert_eq!(res2, ContractError::NoFundsReceived {});
 }

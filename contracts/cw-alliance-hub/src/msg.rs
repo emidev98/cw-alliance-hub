@@ -1,5 +1,5 @@
-use cosmwasm_schema::{cw_serde, QueryResponses};
 use crate::state::Cfg;
+use cosmwasm_schema::{cw_serde, QueryResponses};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -18,7 +18,7 @@ pub struct CW721Collection {
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    MsgDelegate { },
+    MsgDelegate {},
     MsgStartUnbonding { token_id: String },
     MsgRedelegate { token_id: String },
     MsgClaimRewards { token_id: String },
@@ -29,10 +29,10 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(Cfg)]
-    GetConfig { },
+    GetConfig {},
 }
 
 #[cw_serde]
 pub enum MigrateMsg {
-    Migrate { },
+    Migrate {},
 }

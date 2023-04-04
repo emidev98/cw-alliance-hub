@@ -1,22 +1,25 @@
-use crate::{entry_points::{
-    execute::{execute, Cw721ExecuteMsg},
-}, ContractError, tests::utils::chain_with_contract_delegation};
 use crate::msg::ExecuteMsg;
-use cosmwasm_std::{testing::mock_info, Attribute, Binary, CosmosMsg, SubMsg, coins, WasmMsg, to_binary};
-use terra_proto_rs::{
-    alliance::alliance::MsgRedelegate,
-    cosmos::base::v1beta1::Coin as CosmosNativeCoin,
-    traits::Message,
+use crate::{
+    entry_points::execute::{execute, Cw721ExecuteMsg},
+    tests::utils::chain_with_contract_delegation,
+    ContractError,
 };
-use cw721_progressive_metadata::{
-    state::{Metadata as CW721Metadata, Trait as CW721Trait},
+use cosmwasm_std::{
+    coins, testing::mock_info, to_binary, Attribute, Binary, CosmosMsg, SubMsg, WasmMsg,
+};
+use cw721_progressive_metadata::state::{Metadata as CW721Metadata, Trait as CW721Trait};
+use terra_proto_rs::{
+    alliance::alliance::MsgRedelegate, cosmos::base::v1beta1::Coin as CosmosNativeCoin,
+    traits::Message,
 };
 
 #[test]
 fn test_redelegate() {
     // GIVEN
     let (mut deps, env, info) = chain_with_contract_delegation();
-    let msg = ExecuteMsg::MsgRedelegate { token_id: String::from("0") };
+    let msg = ExecuteMsg::MsgRedelegate {
+        token_id: String::from("0"),
+    };
 
     // WHEN
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
@@ -56,32 +59,36 @@ fn test_redelegate() {
                 amount: Some(CosmosNativeCoin {
                     denom: String::from("token"),
                     amount: String::from("100"),
-                })
+                }),
             }
             .encode_to_vec(),
         ),
     });
     assert_eq!(res.messages[1], redelegate_sub_msg);
-    assert_eq!(res.attributes, 
+    assert_eq!(
+        res.attributes,
         vec![
             Attribute::new("action", "redelegate"),
             Attribute::new("sender", "creator")
-        ]);
+        ]
+    );
 }
-
 
 #[test]
 fn test_claim_rewards_with_no_access() {
     // GIVEN
     let (mut deps, env, _info) = chain_with_contract_delegation();
     let info = mock_info("invalid_creator", &coins(100, "token"));
-    let msg = ExecuteMsg::MsgRedelegate { token_id: String::from("0") };
+    let msg = ExecuteMsg::MsgRedelegate {
+        token_id: String::from("0"),
+    };
 
     // WHEN
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg).unwrap_err();
 
     // THEN
-    assert_eq!(res, 
+    assert_eq!(
+        res,
         ContractError::UnauthorizedNFTOwnere(
             String::from("creator"),
             String::from("invalid_creator")

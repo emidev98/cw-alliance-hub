@@ -6,9 +6,9 @@ pub mod entry_points {
     pub mod query;
     pub mod reply;
 }
+mod error;
 pub mod msg;
 pub mod state;
-mod error;
 pub use crate::error::ContractError;
 
 #[cfg(test)]
