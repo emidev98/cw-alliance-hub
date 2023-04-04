@@ -9,10 +9,7 @@ use cosmwasm_std::{
 };
 use cw721_progressive_metadata::state::{Metadata as CW721Metadata, Trait as CW721Trait};
 use terra_proto_rs::alliance::alliance::MsgUndelegate;
-use terra_proto_rs::{
-    cosmos::base::v1beta1::Coin as CosmosNativeCoin,
-    traits::Message,
-};
+use terra_proto_rs::{cosmos::base::v1beta1::Coin as CosmosNativeCoin, traits::Message};
 
 #[test]
 fn test_start_unbonding() {

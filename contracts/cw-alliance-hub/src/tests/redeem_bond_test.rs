@@ -4,9 +4,7 @@ use crate::{
     tests::utils::chain_with_contract_delegation,
     ContractError,
 };
-use cosmwasm_std::{
-    coins, testing::mock_info, to_binary, Attribute, SubMsg, WasmMsg,
-};
+use cosmwasm_std::{coins, testing::mock_info, to_binary, Attribute, SubMsg, WasmMsg};
 use cosmwasm_std::{BankMsg, Coin, Uint128};
 use cw721_progressive_metadata::state::{Metadata as CW721Metadata, Trait as CW721Trait};
 

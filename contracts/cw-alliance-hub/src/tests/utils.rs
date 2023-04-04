@@ -46,7 +46,9 @@ pub fn chain_with_contract() -> (
     (deps, env, info)
 }
 
-pub fn chain_with_contract_delegation(contract_adress: String) -> (
+pub fn chain_with_contract_delegation(
+    contract_adress: String,
+) -> (
     OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>,
     Env,
     MessageInfo,
@@ -63,7 +65,9 @@ pub fn chain_with_contract_delegation(contract_adress: String) -> (
         id: 1,
         result: cosmwasm_std::SubMsgResult::Ok(SubMsgResponse {
             data: None,
-            events: vec![Event::new("instantiate").add_attribute("_contract_address", contract_adress)],
+            events: vec![
+                Event::new("instantiate").add_attribute("_contract_address", contract_adress)
+            ],
         }),
     };
     reply(deps.as_mut(), env.clone(), msg).unwrap();
