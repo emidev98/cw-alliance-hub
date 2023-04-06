@@ -1,53 +1,67 @@
 # CWAllianceHub
 
-This Smart contract uses [x/alliance](https://github.com/terra-money/alliance) and [cw-nfts](https://github.com/CosmWasm/cw-nfts) standard enabling the users to stake multiple tokens and generate rewards. When tokens are staked using this smart contract the wallet will receive an NFT representation of the staked tokens that allows the owner of the NFT to claim the rewards, redelegate or redeem back the tokens.
+This Smart contract uses [x/alliance](https://github.com/terra-money/alliance) and [cw-nfts](https://github.com/CosmWasm/cw-nfts) enabling the users to stake multiple tokens and generate rewards. When tokens are send to this smart contractt, the smart contract will redeem an NFT representation of the staked tokens that allows the owner of the NFT to claim the rewards, redelegate or redeem back the tokens.
 
-### Execute
+## Development Information
+
+This smart contract shouldn't be used in production as it is right now because there are few things that are not handled and the economics are not completed. It should be used as example to understand:
+
+- How to use [x/alliance](https://github.com/terra-money/alliance) from a smart contract through `CosmosMsg::Stargate`,
+- How to setup a cargo workspaces with multiple contracts, linting, tests, tests coverage,
+- How to reply to messages in CosmWasm,
+- How to query a smaart contract from another smart contract,
+- How to query the staking module from a smart contract,
+- How to generate scripts to interact with the smart contract and blockchain to have a better development experience (see `scripts` folder),
+- ...
+
+In conclusion this smart contract is more of a proof of concept than a production ready smart contract but it can help you to understand many things about CosmWasm.
+
+### Contract executions
 
 - `MsgDelegate` 
     - User send [tokens](https://github.com/cosmos/cosmos-sdk/blob/main/types/coin.go#L173) to the smart contract,
-    - the smart contract:
-        - apply a find algorithm to the active validators and execute [MsgDelegate from x/alliance module](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L17),
-        - send a newly minted NFT to the user populating the metadata with the delegatoin information and nft status `DELEGATED` and current block height.
+    - smart contract:
+        - apply a find algorithm to chose a validator and execute [MsgDelegate from x/alliance module](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L17),
+        - send a newly minted NFT to the user populating the metadata with the delegatoin information and nft status `Delegated` and current block height.
 
-- `MsgUndelegate`
-    - User send the NFT address (minted in MsgDelegate) to the smart contract,
-    - the smart contract:
-        - check if the user is not the owner of the nft throw an error. 
-        - check if NFT status is `UNDELEGATED` or `UNDELEGATING` throw an error.
-        - check if NFT status is `REDELEGATING` and block height is greater than current block height throw an error.
-        - if none of the previous statements is true, the smart contract executes the [MsgUndelegate from x/alliance](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L85) and set the NFT status to `UNDELEGATING` with block height in the future when the undelegation will be finalized.
+- `MsgStartUnbonding`
+    - NFT owner execute this method with token_id (minted in MsgDelegate),
+    - smart contract:
+        - check if NFT status is `Redelegating` and it's redelegating time has completed otherwise throws an error,
+        - check if NFT status is NOT `Delegated` to throw an error,
+        - if none of the previous statements is true, the smart contract executes [MsgUndelegate from x/alliance](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L85) and set the NFT status to `Unbonding` with block height in the future when the undelegation will be finalized.
 
 
 - `MsgRedelegate`
-    - User send the NFT address (minted in MsgDelegate) to the smart contract,
-    - the smart contract: 
-        - check if the user is not the owner of the nft throw an error. 
-        - check if NFT status is `UNDELEGATED` or `UNDELEGATING` throw an error.
-        - check if NFT status is `REDELEGATING` and block height is greater than current block height throw an error,
-        - the smart contract apply a find algorithm to the active validators and execute the [MsgRedelegate from x/alliance](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L46), update the nft metadata with the new validators and set the NFT status to `REDELEGATING` with block height in the future when the redelegation will be finalized.
+    - NFT owner execute this method with token_id (minted in MsgDelegate),
+    - smart contract:
+        - check if NFT status is `Redelegating` and it's redelegating time has completed otherwise throws an error,
+        - check if NFT status is NOT `Delegated` to throw an error,
+        - the smart contract apply a find algorithm to active validators set and execute [MsgRedelegate from x/alliance](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L46), update the nft metadata with new validators,status `Redelegating` andd block height in the future when the redelegation will be finalized.
 
 - `MsgClaimRewards`:
-    - User send the NFT address (minted in MsgDelegate) to the smart contract,
-    - the smart contract:
-        - check if the user is not the owner of the nft throw an error. 
-        - check if NFT status is `UNDELEGATED` or `UNDELEGATING` and throw an error.
-        - check if NFT status is `REDELEGATING` and block height is greater than current block height throw an error.
-        - will [ClaimDelegationRewards from x/alliance module on behaf of the user](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L114) transferring the delegation rewards to the user account.
+    - NFT owner execute this method with token_id (minted in MsgDelegate),
+    - smart contract:
+        - check if NFT status is `Redelegating` and it's redelegating time has completed otherwise throws an error,
+        - check if NFT status is NOT `Delegated` to throw an error,
+        - will [ClaimDelegationRewards from x/alliance module on behaf of the user](https://github.com/terra-money/alliance/blob/main/x/alliance/keeper/msg_server.go#L114).
 
 
-- `MsgRedeemUndelegation`
-    - User send the NFT address (minted in MsgDelegate) to the smart contract,
-    - the smart contract:
-        - check if the user is not the owner of thenft thow an error,
-        - check if NFT status is different than `UNDELEGATING` and block height is greather than current block height throw an error,
-        - the smart contract will send the tokens written in the NFT metadata to the NFT owner and will set the NFT status to `UNDELEGATED`.
+- `MsgRedeemBond`
+    - NFT owner execute this method with token_id (minted in MsgDelegate),
+    - smart contract:
+        - check if NFT status is `Redelegating` and it's redelegating time has completed otherwise throws an error,
+        - check if NFT status is NOT `Delegated` to throw an error,
+        - smart contract will send tokens written in the NFT metadata to NFT owner and will set the NFT status to `Unbonded`.
 
 
-> :warning: **Slashing is not handled by the smart contract**. The smart contract will take a fee each time the user claims rewards to assure there is always a positive balance in the smart contract in case any of the validators is slashed.
+> ⚠️ **Slashing is not handled by the smart contract**.
 
-### Query 
+> ⚠️ **Rewards are stored in the smart contract**
 
-- `ListNFTS` return the list of minted NFTS from `MsgDelegate`
+### Contract queries
 
-
+- `GetConfig` return smart contract configuration:
+    - **minted_nfts**: counter of how many nfts have been minted used to assign the next nft id,
+    - **unbonding_seconds**: number of seconds set in staking module,
+    - **nft_contract_addr**: the address of the nft collection used to represent the alliance NFTS.

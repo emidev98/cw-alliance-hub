@@ -21,6 +21,9 @@ pub enum ContractError {
     #[error("Cannot redelegate the '{0}' NFT")]
     RedelegatingImpossible(String),
 
+    #[error("Cannot claim rewards for the '{0}' NFT")]
+    ClaimRewardsImpossible(String),
+
     #[error("Something went wrong quering the validatos of the network")]
     NoValidatorsFound {},
 

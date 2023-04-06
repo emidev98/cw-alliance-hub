@@ -459,6 +459,13 @@ fn try_claim_rewards(
     let msgs = attrs
         .iter()
         .map(|attr| {
+            if (attr.display_type == DisplayType::Redelegating.to_string()
+                && attr.timestamp < env.block.time)
+                || attr.display_type != DisplayType::Delegated.to_string()
+            {
+                return Err(ContractError::ClaimRewardsImpossible(token_id.clone()));
+            }
+
             let coin = attr.value.split(DEFAULT_DELIMITER).collect::<Vec<&str>>();
             let msg = MsgClaimDelegationRewards {
                 delegator_address: env.contract.address.to_string(),
@@ -467,12 +474,12 @@ fn try_claim_rewards(
             }
             .encode_to_vec();
 
-            CosmosMsg::Stargate {
+            Ok(CosmosMsg::Stargate {
                 type_url: "/alliance.alliance.MsgClaimDelegationRewards".to_string(),
                 value: Binary::from(msg),
-            }
+            })
         })
-        .collect::<Vec<CosmosMsg>>();
+        .collect::<Result<Vec<CosmosMsg>, ContractError>>()?;
 
     Ok(Response::new()
         .add_attribute("action", "claim_rewards")
